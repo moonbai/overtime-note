@@ -85,5 +85,4 @@ APK 输出位置：`app/build/outputs/apk/debug/overtime-1.0.16-debug.apk`
 ## 作者与许可
 
 - **作者**：Mars
-- **GitHub**：https://github.com/compose-miuix-ui/miuix
 - **许可**：MIT License
