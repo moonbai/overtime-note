@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.miuix.ui.theme.MiuixTheme
 
 private val DarkColorScheme = darkColorScheme()
 private val LightColorScheme = lightColorScheme()
@@ -22,6 +23,7 @@ private val LightColorScheme = lightColorScheme()
 fun OvertimeTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
+    useMiuix: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -41,9 +43,22 @@ fun OvertimeTheme(
         }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = androidx.compose.material3.Typography(),
-        content = content
-    )
+    if (useMiuix) {
+        MiuixTheme(
+            darkTheme = darkTheme,
+            dynamicColor = dynamicColor
+        ) {
+            MaterialTheme(
+                colorScheme = colorScheme,
+                typography = androidx.compose.material3.Typography(),
+                content = content
+            )
+        }
+    } else {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = androidx.compose.material3.Typography(),
+            content = content
+        )
+    }
 }

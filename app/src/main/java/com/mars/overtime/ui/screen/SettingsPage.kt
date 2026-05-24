@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsPage(
+    onNavigateToAppearanceSettings: () -> Unit,
     onNavigateToPushSettings: () -> Unit,
     onNavigateToSalarySettings: () -> Unit,
     onNavigateToCalendarSettings: () -> Unit,
@@ -41,6 +42,7 @@ fun SettingsPage(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
         ) {
+            SettingsItem("外观设置", "MiuiX 与 Material3 切换", onNavigateToAppearanceSettings)
             SettingsItem("推送设置", "钉钉、飞书、WxPusher、自定义推送", onNavigateToPushSettings)
             SettingsItem("薪资设置", "基础薪资、加班倍率", onNavigateToSalarySettings)
             SettingsItem("日历同步", "安卓日历同步设置", onNavigateToCalendarSettings)
