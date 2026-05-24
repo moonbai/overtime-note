@@ -26,11 +26,15 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-
-    - name: Setup Gradle
+    - name: Set up Gradle 8.7
       uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '8.7'
+
+    - name: Generate Gradle Wrapper
+      run: |
+        gradle wrapper --gradle-version 8.7
+        chmod +x gradlew
 
     - name: Decode signing key
       run: |
