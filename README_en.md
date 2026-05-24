@@ -1,8 +1,9 @@
 
 ## English | [中文](README.md)
 
-
 ### Overtime Record App
+
+<img src="https://img.shields.io/badge/Android-10%2B-blue" alt="Android 10+"><img src="https://img.shields.io/badge/Kotlin-1.9.24-purple" alt="Kotlin 1.9.24"><img src="https://img.shields.io/badge/Jetpack%20Compose-2024.10.01-green" alt="Compose"><img src="https://img.shields.io/badge/MiuiX-0.0.35-orange" alt="MiuiX">
 
 Minimalist personal overtime tracking tool for Android, with local-first design, multi-channel notifications, calendar sync, and complete backup.
 
@@ -30,6 +31,33 @@ Minimalist personal overtime tracking tool for Android, with local-first design,
 | Min SDK | 24 (Android 7.0) |
 | Target SDK | 35 (Android 15) |
 
+### Project Structure
+
+
+
+```
+app/src/main/java/com/mars/overtime/
+├── database/           # Room database
+│   ├── OvertimeRecord.kt  # Overtime record entity
+│   ├── AppConfig.kt       # Config entity
+│   ├── AppDatabase.kt     # Database class
+│   ├── OvertimeDao.kt     # Overtime record DAO
+│   └── ConfigDao.kt       # Config DAO
+├── push/               # Push related
+│   ├── PushManager.kt     # 4‑channel push manager
+│   └── CalendarSyncManager.kt # Calendar sync
+├── ui/                 # UI screens
+│   ├── MainNav.kt         # Navigation
+│   ├── theme/Theme.kt     # Theme
+│   └── screen/            # Pages
+└── util/               # Utilities
+    ├── SalaryCalculator.kt # Salary calculation
+    ├── HolidayManager.kt  # Holiday management
+    ├── BackupManager.kt   # Backup & restore
+    ├── WebDavManager.kt   # WebDAV
+    └── DataMigrationUtil.kt # Data migration
+```
+
 ### Build & Run
 
 ```bash
@@ -47,5 +75,4 @@ See `.github/workflows/build.yml` for automated build workflow with fixed signin
 ### Author & License
 
 - **Author**: Mars
-- **GitHub**: https://github.com/compose-miuix-ui/miuix
 - **License**: MIT License
