@@ -36,17 +36,27 @@ fun AddEditRecordPage(
 
     val scope = rememberCoroutineScope()
 
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.CHINA)
     dateFormat.timeZone = TimeZone.getTimeZone("GMT+8")
     
-    val calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"))
+    val calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"), Locale.CHINA)
     val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
     val currentMinute = calendar.get(Calendar.MINUTE)
     
     val nearestHour = if (currentMinute < 30) currentHour else currentHour + 1
-    val defaultEndTime = String.format("%02d:%02d", nearestHour, if (currentMinute < 30) 30 else 0)
+    val defaultEndTime = String.format(Locale.CHINA, "%02d:%02d", nearestHour, if (currentMinute < 30) 30 else 0)
 
-    var selectedDate by remember { mutableStateOf(dateFormat.format(Date())) }
+    var selectedDate by remember { 
+        mutableStateOf(
+            Calendar.getInstance(TimeZone.getTimeZone("GMT+8"), Locale.CHINA).let { cal ->
+                cal.set(Calendar.HOUR_OF_DAY, 12)
+                cal.set(Calendar.MINUTE, 0)
+                cal.set(Calendar.SECOND, 0)
+                cal.set(Calendar.MILLISECOND, 0)
+                dateFormat.format(cal.time)
+            }
+        )
+    }
     var selectedStartTime by remember { mutableStateOf("17:00") }
     var selectedEndTime by remember { mutableStateOf(defaultEndTime) }
     var duration by remember { mutableStateOf(3.0) }
@@ -88,7 +98,7 @@ fun AddEditRecordPage(
     }
 
     fun parseDateToLocalCalendar(dateStr: String): Calendar {
-        val cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"))
+        val cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"), Locale.CHINA)
         try {
             val date = dateFormat.parse(dateStr)
             if (date != null) {
@@ -96,6 +106,11 @@ fun AddEditRecordPage(
             }
         } catch (e: Exception) {
         }
+        // 确保设置为中午12点
+        cal.set(Calendar.HOUR_OF_DAY, 12)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
         return cal
     }
 
@@ -281,8 +296,17 @@ fun AddEditRecordPage(
                     onClick = {
                         val selectedMillis = datePickerState.selectedDateMillis
                         if (selectedMillis != null) {
-                            val cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"))
+                            val cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"), Locale.CHINA)
                             cal.timeInMillis = selectedMillis
+                            // 确保时区正确，先获取选中日期的年月日
+                            val year = cal.get(Calendar.YEAR)
+                            val month = cal.get(Calendar.MONTH)
+                            val day = cal.get(Calendar.DAY_OF_MONTH)
+                            // 重新设置为中午12点，避免时区偏移
+                            cal.clear()
+                            cal.set(Calendar.YEAR, year)
+                            cal.set(Calendar.MONTH, month)
+                            cal.set(Calendar.DAY_OF_MONTH, day)
                             cal.set(Calendar.HOUR_OF_DAY, 12)
                             cal.set(Calendar.MINUTE, 0)
                             cal.set(Calendar.SECOND, 0)

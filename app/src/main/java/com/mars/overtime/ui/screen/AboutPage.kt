@@ -15,13 +15,19 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.Celebration
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -42,7 +48,7 @@ fun AboutPage(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("关于加班记") },
+                title = { Text("关于") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "返回")
@@ -62,15 +68,10 @@ fun AboutPage(
 
             Box(
                 modifier = Modifier
-                    .size(140.dp)
-                    .clip(CircleShape)
+                    .size(100.dp)
+                    .clip(RoundedCornerShape(24.dp))
                     .background(
-                        Brush.linearGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primaryContainer,
-                                MaterialTheme.colorScheme.secondaryContainer
-                            )
-                        )
+                        MaterialTheme.colorScheme.primaryContainer
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -79,38 +80,36 @@ fun AboutPage(
                         bitmap = bitmap.asImageBitmap(),
                         contentDescription = "应用图标",
                         contentScale = ContentScale.Fit,
-                        modifier = Modifier.size(100.dp)
+                        modifier = Modifier.size(70.dp)
                     )
                 } ?: Icon(
-                    imageVector = Icons.Default.Star,
+                    imageVector = Icons.Default.Celebration,
                     contentDescription = "应用图标",
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(70.dp)
+                    modifier = Modifier.size(50.dp)
                 )
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                text = "加班记",
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "版本 $versionName",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
 
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
+                text = "加班记",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "版本 $versionName",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
                 text = "用心记录，每一份付出都值得被看见",
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 24.dp)
+                fontWeight = FontWeight.Medium
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -119,91 +118,53 @@ fun AboutPage(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                shape = RoundedCornerShape(16.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier = Modifier.padding(20.dp)
                 ) {
+                    Text(
+                        text = "关于应用",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = "一款简洁实用的加班记录与薪资计算工具，帮你轻松记录每一次加班，精准计算应得报酬。",
                         style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 22.sp
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             Text(
                 text = "主要功能",
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(horizontal = 20.dp)
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
+                textAlign = TextAlign.Start
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            FeatureItem(
-                icon = Icons.Default.Edit,
-                title = "本地记录",
-                description = "所有数据存储在本地，保障隐私安全"
-            )
-            FeatureItem(
-                icon = Icons.Default.Notifications,
-                title = "多渠道推送",
-                description = "支持钉钉、飞书、企业微信等推送"
-            )
-            FeatureItem(
-                icon = Icons.Default.CalendarToday,
-                title = "日历同步",
-                description = "自动添加加班事件到系统日历"
-            )
-            FeatureItem(
-                icon = Icons.Default.CloudUpload,
-                title = "云端备份",
-                description = "WebDAV备份，多设备同步数据"
-            )
-            FeatureItem(
-                icon = Icons.Default.AttachMoney,
-                title = "薪资计算",
-                description = "灵活设置，自动计算加班报酬"
-            )
-            FeatureItem(
-                icon = Icons.Default.Celebration,
-                title = "智能识别",
-                description = "自动判断节假日与休息日"
-            )
+            FeatureGrid()
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             AboutItem(
-                icon = {
-                    Icon(
-                        Icons.Default.Code,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                },
+                icon = Icons.Default.Code,
                 title = "作者",
                 subtitle = "Mars",
                 onClick = {}
             )
 
             AboutItem(
-                icon = {
-                    Icon(
-                        Icons.Default.Code,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                },
+                icon = Icons.Default.Code,
                 title = "开源仓库",
                 subtitle = "github.com/moonbai/overtime-note",
                 onClick = {}
@@ -214,15 +175,12 @@ fun AboutPage(
             Text(
                 text = "© 2024 Mars",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-
             Text(
                 text = "All rights reserved",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                textAlign = TextAlign.Center
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -231,26 +189,79 @@ fun AboutPage(
 }
 
 @Composable
-fun FeatureItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    description: String
-) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+fun FeatureGrid() {
+    Column(
+        modifier = Modifier.padding(horizontal = 20.dp)
     ) {
         Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            FeatureCard(
+                icon = Icons.Default.Edit,
+                title = "本地记录",
+                modifier = Modifier.weight(1f)
+            )
+            FeatureCard(
+                icon = Icons.Default.Notifications,
+                title = "多渠道推送",
+                modifier = Modifier.weight(1f)
+            )
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            FeatureCard(
+                icon = Icons.Default.Celebration,
+                title = "智能识别",
+                modifier = Modifier.weight(1f)
+            )
+            FeatureCard(
+                icon = Icons.Default.CloudUpload,
+                title = "云端备份",
+                modifier = Modifier.weight(1f)
+            )
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            FeatureCard(
+                icon = Icons.Default.AttachMoney,
+                title = "薪资计算",
+                modifier = Modifier.weight(1f)
+            )
+            FeatureCard(
+                icon = Icons.Default.Edit,
+                title = "更多功能",
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+fun FeatureCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(
             modifier = Modifier
+                .fillMaxWidth()
                 .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(40.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
@@ -259,33 +270,23 @@ fun FeatureItem(
                     imageVector = icon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(20.dp)
                 )
             }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium
-                )
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
 
 @Composable
 fun AboutItem(
-    icon: @Composable () -> Unit,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
     subtitle: String,
     onClick: () -> Unit
@@ -295,7 +296,6 @@ fun AboutItem(
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 4.dp),
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
         onClick = onClick
     ) {
         Row(
@@ -305,25 +305,30 @@ fun AboutItem(
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(40.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                icon()
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
             Column {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
                     text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

@@ -30,9 +30,10 @@ object HolidayManager {
     )
 
     private fun isWeekend(dateStr: String): Boolean {
-        val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val format = SimpleDateFormat("yyyy-MM-dd", Locale.CHINA)
+        format.timeZone = TimeZone.getTimeZone("GMT+8")
         val date = format.parse(dateStr) ?: return false
-        val cal = Calendar.getInstance()
+        val cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"), Locale.CHINA)
         cal.time = date
         val dayOfWeek = cal.get(Calendar.DAY_OF_WEEK)
         return dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY
