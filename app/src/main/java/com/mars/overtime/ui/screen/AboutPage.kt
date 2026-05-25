@@ -342,8 +342,7 @@ private fun loadMipmapIcon(context: Context): Bitmap? {
     
     val mipmapNames = listOf(
         "ic_launcher",
-        "ic_launcher_round",
-        "ic_launcher_foreground"
+        "ic_launcher_round"
     )
     
     val densitySuffixes = listOf(
