@@ -5,6 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -52,7 +53,8 @@ fun AddEditRecordPage(
     var selectedType by remember { mutableStateOf(OvertimeType.WORKDAY) }
     var remark by remember { mutableStateOf("") }
     var money by remember { mutableStateOf(0.0) }
-    
+    var holidayInfo by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
@@ -60,8 +62,19 @@ fun AddEditRecordPage(
     val allConfigs by configDao.getAllConfigs().collectAsState(initial = emptyList())
 
     fun updateOvertimeType(dateStr: String) {
+        isLoading = true
         scope.launch {
-            selectedType = HolidayManager.getOvertimeType(dateStr)
+            try {
+                val holidayInfoResult = HolidayManager.getOvertimeType(dateStr)
+                selectedType = holidayInfoResult
+                holidayInfo = when (holidayInfoResult) {
+                    OvertimeType.WORKDAY -> "工作日"
+                    OvertimeType.RESTDAY -> "休息日"
+                    OvertimeType.HOLIDAY -> "法定节假日"
+                }
+            } finally {
+                isLoading = false
+            }
         }
     }
 
@@ -101,6 +114,41 @@ fun AddEditRecordPage(
             }
             Spacer(modifier = Modifier.height(8.dp))
 
+            if (holidayInfo != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "当前日期类型: $holidayInfo",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
+                }
+            } else if (isLoading) {
+                Text(
+                    modifier = Modifier.padding(top = 8.dp),
+                    text = "正在加载日期信息...",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -118,12 +166,13 @@ fun AddEditRecordPage(
                     Text("结束: $selectedEndTime")
                 }
             }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("加班时长: ${"%.2f".format(duration)} 小时", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text("加班时长: ${"%.2f".format(duration)} 小时", style = MaterialTheme.typography.bodyLarge)
+            Text("加班类型:", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
-
-            Text("加班类型:", style = MaterialTheme.typography.bodyLarge)
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OvertimeType.values().forEach { type ->
                     FilterChip(
@@ -141,9 +190,9 @@ fun AddEditRecordPage(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Text("预计金额: ¥${"%.2f".format(money)}", style = MaterialTheme.typography.bodyLarge)
+            Text("预计金额: ¥${"%.2f".format(money)}", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
@@ -153,7 +202,7 @@ fun AddEditRecordPage(
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             Button(
                 onClick = {
@@ -207,7 +256,6 @@ fun AddEditRecordPage(
 
     if (showDatePicker) {
         val localTimeZone = TimeZone.getDefault()
-        val offsetMillis = localTimeZone.rawOffset.toLong()
         
         val initialDateMillis = try {
             dateFormat.parse(selectedDate)?.time ?: System.currentTimeMillis()
@@ -216,12 +264,7 @@ fun AddEditRecordPage(
         }
         
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = initialDateMillis,
-            selectableDates = object : SelectableDates {
-                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                    return true
-                }
-            }
+            initialSelectedDateMillis = initialDateMillis
         )
         
         DatePickerDialog(
@@ -233,7 +276,6 @@ fun AddEditRecordPage(
                         if (selectedMillis != null) {
                             val calendar = Calendar.getInstance()
                             calendar.timeInMillis = selectedMillis
-                            calendar.add(Calendar.MILLISECOND, localTimeZone.rawOffset)
                             selectedDate = dateFormat.format(calendar.time)
                             updateOvertimeType(selectedDate)
                         }

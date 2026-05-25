@@ -6,12 +6,13 @@ import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.*
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.io.IOException
+import java.io.File
 
 object WebDavManager {
     private val client = OkHttpClient.Builder()
         .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
         .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
         .build()
 
     data class WebDavConfig(
@@ -27,34 +28,88 @@ object WebDavManager {
     }
 
     private fun buildUrl(config: WebDavConfig, fileName: String): String {
-        var base = config.baseUrl.trimEnd('/')
-        var path = config.remotePath.trimStart('/')
-        if (!path.endsWith('/')) {
-            path = "$path/"
+        val base = config.baseUrl.trimEnd('/')
+        val path = config.remotePath.trim('/')
+        val fullPath = if (path.isNotEmpty() && !path.endsWith('/')) {
+            "$path/"
+        } else {
+            path
         }
-        return "$base/$path$fileName"
+        val fullUrl = if (fullPath.isNotEmpty()) {
+            "$base/$fullPath$fileName"
+        } else {
+            "$base/$fileName"
+        }
+        Log.d("WebDavManager", "构建的URL: $fullUrl")
+        return fullUrl
     }
 
     private fun buildListUrl(config: WebDavConfig): String {
-        var base = config.baseUrl.trimEnd('/')
-        var path = config.remotePath.trimStart('/')
-        if (!path.endsWith('/')) {
-            path = "$path/"
+        val base = config.baseUrl.trimEnd('/')
+        val path = config.remotePath.trim('/')
+        val finalPath = if (path.isNotEmpty() && !path.endsWith('/')) {
+            "$path/"
+        } else {
+            path
         }
-        return "$base/$path"
+        val fullUrl = if (finalPath.isNotEmpty()) {
+            "$base/$finalPath"
+        } else {
+            "$base/"
+        }
+        Log.d("WebDavManager", "构建的列表URL: $fullUrl")
+        return fullUrl
+    }
+
+    private suspend fun ensureDirectoryExists(config: WebDavConfig): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val base = config.baseUrl.trimEnd('/')
+            val path = config.remotePath.trim('/')
+            val fullPath = if (path.isNotEmpty() && !path.endsWith('/')) {
+                "$path/"
+            } else {
+                path
+            }
+
+            val segments = fullPath.split('/').filter { it.isNotEmpty() }
+            var currentUrl = base
+            for (segment in segments) {
+                currentUrl = "$currentUrl/$segment"
+                val mkcolUrl = if (!currentUrl.endsWith('/')) {
+                    "$currentUrl/"
+                } else {
+                    currentUrl
+                }
+                Log.d("WebDavManager", "创建目录: $mkcolUrl")
+                val request = Request.Builder()
+                    .url(mkcolUrl)
+                    .method("MKCOL", null)
+                    .header("Authorization", createCredentials(config))
+                    .build()
+                val response = client.newCall(request).execute()
+                val success = response.isSuccessful || response.code in listOf(201, 204, 207)
+                Log.d("WebDavManager", "创建目录 $mkcolUrl: ${response.code}")
+                response.close()
+            }
+            true
+        } catch (e: Exception) {
+            Log.e("WebDavManager", "创建目录失败", e)
+            false
+        }
     }
 
     suspend fun uploadFile(config: WebDavConfig, localFilePath: String, remoteFileName: String): Boolean = withContext(Dispatchers.IO) {
         try {
-            val file = java.io.File(localFilePath)
+            Log.d("WebDavManager", "开始上传: $localFilePath -> $remoteFileName")
+            val file = File(localFilePath)
             if (!file.exists()) {
                 Log.e("WebDavManager", "本地文件不存在: $localFilePath")
                 return@withContext false
             }
 
+            ensureDirectoryExists(config)
             val url = buildUrl(config, remoteFileName)
-            Log.d("WebDavManager", "上传到: $url")
-            
+
             val mediaType = "application/json".toMediaType()
             val body = file.readBytes().toRequestBody(mediaType)
 
@@ -63,13 +118,16 @@ object WebDavManager {
                 .put(body)
                 .header("Authorization", createCredentials(config))
                 .header("Content-Type", "application/json")
-                .header("Expect", "100-continue")
                 .build()
 
             val response = client.newCall(request).execute()
             val code = response.code
-            val success = response.isSuccessful || code == 201 || code == 204
-            Log.d("WebDavManager", "上传结果: $code, success: $success")
+            val success = response.isSuccessful || code in listOf(201, 204, 207)
+            Log.d("WebDavManager", "上传: $code, success: $success")
+            if (!success) {
+                val errorBody = response.body?.string()
+                Log.e("WebDavManager", "上传失败: $errorBody")
+            }
             response.close()
             success
         } catch (e: Exception) {
@@ -80,8 +138,8 @@ object WebDavManager {
 
     suspend fun downloadFile(config: WebDavConfig, remoteFileName: String, localFilePath: String): Boolean = withContext(Dispatchers.IO) {
         try {
+            Log.d("WebDavManager", "下载从: $remoteFileName -> $localFilePath")
             val url = buildUrl(config, remoteFileName)
-            Log.d("WebDavManager", "下载从: $url")
 
             val request = Request.Builder()
                 .url(url)
@@ -92,13 +150,14 @@ object WebDavManager {
             val response = client.newCall(request).execute()
             if (response.isSuccessful) {
                 response.body?.bytes()?.let { bytes ->
-                    java.io.File(localFilePath).writeBytes(bytes)
+                    File(localFilePath).writeBytes(bytes)
                     response.close()
                     Log.d("WebDavManager", "下载成功")
                     return@withContext true
                 }
             }
-            Log.d("WebDavManager", "下载失败: ${response.code}")
+            val errorBody = response.body?.string()
+            Log.e("WebDavManager", "下载失败: ${response.code}, $errorBody")
             response.close()
             false
         } catch (e: Exception) {
@@ -111,12 +170,13 @@ object WebDavManager {
         try {
             val url = buildListUrl(config)
             Log.d("WebDavManager", "列出文件从: $url")
-            
+
             val request = Request.Builder()
                 .url(url)
                 .method("PROPFIND", null)
                 .header("Authorization", createCredentials(config))
                 .header("Depth", "1")
+                .header("Content-Type", "application/xml")
                 .build()
 
             val response = client.newCall(request).execute()
@@ -124,16 +184,16 @@ object WebDavManager {
             Log.d("WebDavManager", "列表响应长度: ${body.length}")
             response.close()
 
-            val pattern = Regex("<D:href>([^<]*)</D:href>")
-            val files = pattern.findAll(body)
+            val pattern = Regex("<d:href>([^<]*)</d:href>")
+            val matches = pattern.findAll(body)
                 .map { it.groupValues[1] }
                 .filter { it.endsWith(".json") || it.contains("overtime") }
                 .map { it.substringAfterLast('/') }
                 .distinct()
                 .toList()
-            
-            Log.d("WebDavManager", "找到文件: $files")
-            files
+
+            Log.d("WebDavManager", "找到文件: $matches")
+            matches
         } catch (e: Exception) {
             Log.e("WebDavManager", "列出文件失败", e)
             emptyList()
@@ -144,7 +204,9 @@ object WebDavManager {
         try {
             val url = buildListUrl(config)
             Log.d("WebDavManager", "测试连接: $url")
-            
+
+            ensureDirectoryExists(config)
+
             val request = Request.Builder()
                 .url(url)
                 .method("PROPFIND", null)
@@ -153,8 +215,12 @@ object WebDavManager {
                 .build()
 
             val response = client.newCall(request).execute()
-            val success = response.isSuccessful || response.code == 207
+            val success = response.isSuccessful || response.code in listOf(200, 201, 207)
             Log.d("WebDavManager", "连接测试: ${response.code}, success: $success")
+            if (!success) {
+                val errorBody = response.body?.string()
+                Log.e("WebDavManager", "连接失败: $errorBody")
+            }
             response.close()
             success
         } catch (e: Exception) {

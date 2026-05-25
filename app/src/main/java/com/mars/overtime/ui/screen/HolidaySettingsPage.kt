@@ -54,11 +54,11 @@ fun HolidaySettingsPage(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            Text("自定义节假日API", style = MaterialTheme.typography.titleLarge)
+            Text("自定义节假日API", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 "支持 {year} 或 \${years} 占位符自动替换年份\n" +
-                "留空则使用默认API",
+                    "留空则使用默认API",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -97,16 +97,17 @@ fun HolidaySettingsPage(
             HorizontalDivider()
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("节假日规则说明", style = MaterialTheme.typography.titleLarge)
+            Text("节假日规则说明", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                "应用会自动识别法定节假日和调休工作日。调休工作日将正确判定为工作日加班。\n\n" +
-                "• detailsType 0 → 工作日\n" +
-                "• detailsType 1 → 休息日\n" +
-                "• detailsType 3 → 节假日\n\n" +
-                "• 周末休息日 → 休息日加班\n" +
-                "• 法定节假日 → 法定节假日加班\n" +
-                "• 调休工作日 → 工作日延时加班",
+                "应用会自动识别法定节假日和调休工作日。\n\n" +
+                    "• detailsType 0 → 工作日 → 加班类型为工作日\n" +
+                    "• detailsType 1 → 休息日 → 加班类型为休息日\n" +
+                    "• detailsType 3 → 节假日 → 加班类型为法定节假日\n\n" +
+                    "规则总结:\n" +
+                    "• 周末休息日 → 休息日\n" +
+                    "• 法定节假日 → 节假日\n" +
+                    "• 调休工作日 → 工作日",
                 style = MaterialTheme.typography.bodyMedium
             )
             Spacer(modifier = Modifier.height(24.dp))

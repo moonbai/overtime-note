@@ -64,6 +64,7 @@ object HolidayManager {
     suspend fun getOvertimeType(dateStr: String): OvertimeType = withContext(Dispatchers.IO) {
         holidayCache[dateStr]?.let {
             return@withContext when (it.detailsType) {
+                0 -> OvertimeType.WORKDAY
                 1 -> OvertimeType.RESTDAY
                 3 -> OvertimeType.HOLIDAY
                 else -> OvertimeType.WORKDAY
@@ -114,6 +115,7 @@ object HolidayManager {
             val info = holidayCache[dateStr]
             if (info != null) {
                 return@withContext when (info.detailsType) {
+                    0 -> OvertimeType.WORKDAY
                     1 -> OvertimeType.RESTDAY
                     3 -> OvertimeType.HOLIDAY
                     else -> OvertimeType.WORKDAY
