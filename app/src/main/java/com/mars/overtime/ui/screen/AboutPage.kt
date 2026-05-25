@@ -15,10 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -105,7 +102,18 @@ fun AboutPage(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                text = "用心记录，每一份付出都值得被看见",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 24.dp)
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
 
             Card(
                 modifier = Modifier
@@ -121,16 +129,10 @@ fun AboutPage(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "极简个人加班工时记录工具",
-                        style = MaterialTheme.typography.titleMedium,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "本地优先 · 全渠道推送 · 日历同步 · 完整备份",
+                        text = "一款简洁实用的加班记录与薪资计算工具，帮你轻松记录每一次加班，精准计算应得报酬。",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        lineHeight = 22.sp
                     )
                 }
             }
@@ -138,13 +140,46 @@ fun AboutPage(
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                text = "关于我们",
+                text = "主要功能",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            FeatureItem(
+                icon = Icons.Default.Edit,
+                title = "本地记录",
+                description = "所有数据存储在本地，保障隐私安全"
+            )
+            FeatureItem(
+                icon = Icons.Default.Notifications,
+                title = "多渠道推送",
+                description = "支持钉钉、飞书、企业微信等推送"
+            )
+            FeatureItem(
+                icon = Icons.Default.CalendarToday,
+                title = "日历同步",
+                description = "自动添加加班事件到系统日历"
+            )
+            FeatureItem(
+                icon = Icons.Default.CloudUpload,
+                title = "云端备份",
+                description = "WebDAV备份，多设备同步数据"
+            )
+            FeatureItem(
+                icon = Icons.Default.AttachMoney,
+                title = "薪资计算",
+                description = "灵活设置，自动计算加班报酬"
+            )
+            FeatureItem(
+                icon = Icons.Default.Celebration,
+                title = "智能识别",
+                description = "自动判断节假日与休息日"
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
 
             AboutItem(
                 icon = {
@@ -155,29 +190,29 @@ fun AboutPage(
                         modifier = Modifier.size(24.dp)
                     )
                 },
-                title = "GitHub",
-                subtitle = "moonbai/overtime-note",
+                title = "作者",
+                subtitle = "Mars",
                 onClick = {}
             )
 
             AboutItem(
                 icon = {
                     Icon(
-                        Icons.Default.Email,
+                        Icons.Default.GitHub,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
                     )
                 },
-                title = "邮箱",
-                subtitle = "support@overtime.com",
+                title = "开源仓库",
+                subtitle = "github.com/moonbai/overtime-note",
                 onClick = {}
             )
 
             Spacer(modifier = Modifier.height(40.dp))
 
             Text(
-                text = "© 2024 Moonbai",
+                text = "© 2024 Mars",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -196,6 +231,59 @@ fun AboutPage(
 }
 
 @Composable
+fun FeatureItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    description: String
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 4.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun AboutItem(
     icon: @Composable () -> Unit,
     title: String,
@@ -207,7 +295,7 @@ fun AboutItem(
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 4.dp),
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
         onClick = onClick
     ) {
         Row(

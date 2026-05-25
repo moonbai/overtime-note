@@ -37,9 +37,9 @@ fun AddEditRecordPage(
     val scope = rememberCoroutineScope()
 
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-    dateFormat.timeZone = TimeZone.getDefault()
+    dateFormat.timeZone = TimeZone.getTimeZone("GMT+8")
     
-    val calendar = Calendar.getInstance()
+    val calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"))
     val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
     val currentMinute = calendar.get(Calendar.MINUTE)
     
@@ -88,7 +88,7 @@ fun AddEditRecordPage(
     }
 
     fun parseDateToLocalCalendar(dateStr: String): Calendar {
-        val cal = Calendar.getInstance(TimeZone.getDefault())
+        val cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"))
         try {
             val date = dateFormat.parse(dateStr)
             if (date != null) {
@@ -281,9 +281,9 @@ fun AddEditRecordPage(
                     onClick = {
                         val selectedMillis = datePickerState.selectedDateMillis
                         if (selectedMillis != null) {
-                            val cal = Calendar.getInstance(TimeZone.getDefault())
+                            val cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"))
                             cal.timeInMillis = selectedMillis
-                            cal.set(Calendar.HOUR_OF_DAY, 0)
+                            cal.set(Calendar.HOUR_OF_DAY, 12)
                             cal.set(Calendar.MINUTE, 0)
                             cal.set(Calendar.SECOND, 0)
                             cal.set(Calendar.MILLISECOND, 0)
