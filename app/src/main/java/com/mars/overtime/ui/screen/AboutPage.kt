@@ -1,14 +1,14 @@
 package com.mars.overtime.ui.screen
 
 import android.content.Context
-import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -25,7 +25,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -40,7 +39,7 @@ fun AboutPage(
     onNavigateBack: () -> Unit
 ) {
     val context = LocalContext.current
-    val appIcon = remember { getAppIcon(context) }
+    val appIcon = remember { loadMipmapIcon(context) }
     val versionName = remember { getVersionName(context) }
 
     Scaffold(
@@ -244,13 +243,51 @@ fun AboutItem(
     }
 }
 
-private fun getAppIcon(context: Context): Bitmap? {
+private fun loadMipmapIcon(context: Context): Bitmap? {
+    val resources = context.resources
+    val packageName = context.packageName
+    
+    val mipmapNames = listOf(
+        "ic_launcher",
+        "ic_launcher_round",
+        "ic_launcher_foreground"
+    )
+    
+    val densitySuffixes = listOf(
+        "xxxhdpi",
+        "xxhdpi",
+        "xhdpi",
+        "hdpi",
+        "mdpi",
+        ""
+    )
+    
+    for (name in mipmapNames) {
+        for (suffix in densitySuffixes) {
+            val resName = if (suffix.isEmpty()) name else "${name}_${suffix}"
+            val resId = resources.getIdentifier(resName, "mipmap", packageName)
+            if (resId != 0) {
+                try {
+                    val options = BitmapFactory.Options().apply {
+                        inPreferredConfig = Bitmap.Config.ARGB_8888
+                    }
+                    val bitmap = BitmapFactory.decodeResource(resources, resId, options)
+                    if (bitmap != null) {
+                        return bitmap
+                    }
+                } catch (e: Exception) {
+                    continue
+                }
+            }
+        }
+    }
+    
     return try {
         val packageManager = context.packageManager
-        val packageInfo = packageManager.getPackageInfo(context.packageName, 0)
+        val packageInfo = packageManager.getPackageInfo(packageName, 0)
         val drawable = packageInfo.applicationInfo.loadIcon(packageManager)
         drawableToBitmap(drawable)
-    } catch (e: PackageManager.NameNotFoundException) {
+    } catch (e: Exception) {
         null
     }
 }
@@ -260,7 +297,7 @@ private fun getVersionName(context: Context): String {
         val packageManager = context.packageManager
         val packageInfo = packageManager.getPackageInfo(context.packageName, 0)
         packageInfo.versionName ?: "1.0"
-    } catch (e: PackageManager.NameNotFoundException) {
+    } catch (e: Exception) {
         "1.0"
     }
 }

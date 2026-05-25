@@ -66,6 +66,7 @@ object HolidayManager {
             return@withContext when (it.detailsType) {
                 0 -> OvertimeType.WORKDAY
                 1 -> OvertimeType.RESTDAY
+                2 -> OvertimeType.WORKDAY
                 3 -> OvertimeType.HOLIDAY
                 else -> OvertimeType.WORKDAY
             }
@@ -117,6 +118,7 @@ object HolidayManager {
                 return@withContext when (info.detailsType) {
                     0 -> OvertimeType.WORKDAY
                     1 -> OvertimeType.RESTDAY
+                    2 -> OvertimeType.WORKDAY
                     3 -> OvertimeType.HOLIDAY
                     else -> OvertimeType.WORKDAY
                 }

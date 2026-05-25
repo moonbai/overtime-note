@@ -87,6 +87,18 @@ fun AddEditRecordPage(
         money = SalaryCalculator.calculateMoneyWithConfig(allConfigs, selectedType, duration)
     }
 
+    fun parseDateToLocalCalendar(dateStr: String): Calendar {
+        val cal = Calendar.getInstance(TimeZone.getDefault())
+        try {
+            val date = dateFormat.parse(dateStr)
+            if (date != null) {
+                cal.time = date
+            }
+        } catch (e: Exception) {
+        }
+        return cal
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -255,16 +267,11 @@ fun AddEditRecordPage(
     }
 
     if (showDatePicker) {
-        val localTimeZone = TimeZone.getDefault()
-        
-        val initialDateMillis = try {
-            dateFormat.parse(selectedDate)?.time ?: System.currentTimeMillis()
-        } catch (e: Exception) {
-            System.currentTimeMillis()
-        }
+        val initialCalendar = parseDateToLocalCalendar(selectedDate)
+        val initialMillis = initialCalendar.timeInMillis
         
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = initialDateMillis
+            initialSelectedDateMillis = initialMillis
         )
         
         DatePickerDialog(
@@ -274,9 +281,13 @@ fun AddEditRecordPage(
                     onClick = {
                         val selectedMillis = datePickerState.selectedDateMillis
                         if (selectedMillis != null) {
-                            val calendar = Calendar.getInstance()
-                            calendar.timeInMillis = selectedMillis
-                            selectedDate = dateFormat.format(calendar.time)
+                            val cal = Calendar.getInstance(TimeZone.getDefault())
+                            cal.timeInMillis = selectedMillis
+                            cal.set(Calendar.HOUR_OF_DAY, 0)
+                            cal.set(Calendar.MINUTE, 0)
+                            cal.set(Calendar.SECOND, 0)
+                            cal.set(Calendar.MILLISECOND, 0)
+                            selectedDate = dateFormat.format(cal.time)
                             updateOvertimeType(selectedDate)
                         }
                         showDatePicker = false

@@ -40,6 +40,9 @@ fun BackupSettingsPage(
 
     var operationResult by remember { mutableStateOf("") }
     var showResultDialog by remember { mutableStateOf(false) }
+    var showFilePicker by remember { mutableStateOf(false) }
+    var remoteFiles by remember { mutableStateOf<List<String>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(false) }
 
     val backupFiles = DataMigrationUtil.listBackupFiles(context)
 
@@ -93,6 +96,57 @@ fun BackupSettingsPage(
                 }
                 showResultDialog = true
             }
+        }
+    }
+
+    fun loadRemoteFiles() {
+        isLoading = true
+        scope.launch {
+            val config = WebDavManager.WebDavConfig(
+                baseUrl = webdavUrl,
+                username = webdavUsername,
+                password = webdavPassword,
+                remotePath = webdavPath
+            )
+            val files = WebDavManager.listFiles(config)
+            remoteFiles = files
+            isLoading = false
+            if (files.isNotEmpty()) {
+                showFilePicker = true
+            } else {
+                operationResult = "云端没有备份文件"
+                showResultDialog = true
+            }
+        }
+    }
+
+    fun importFromWebDav(fileName: String) {
+        isLoading = true
+        scope.launch {
+            val tempFile = File(context.cacheDir, "webdav_import_temp.json")
+            val config = WebDavManager.WebDavConfig(
+                baseUrl = webdavUrl,
+                username = webdavUsername,
+                password = webdavPassword,
+                remotePath = webdavPath
+            )
+            val downloadSuccess = WebDavManager.downloadFile(config, fileName, tempFile.absolutePath)
+            if (downloadSuccess) {
+                val data = BackupManager.importData(tempFile.absolutePath)
+                if (data != null) {
+                    overtimeDao.insertAllRecords(data.records)
+                    configDao.saveConfigs(data.configs)
+                    operationResult = "从 WebDAV 导入成功！共导入 ${data.records.size} 条记录"
+                } else {
+                    operationResult = "导入失败，文件格式错误"
+                }
+            } else {
+                operationResult = "从 WebDAV 下载失败"
+            }
+            tempFile.delete()
+            isLoading = false
+            showFilePicker = false
+            showResultDialog = true
         }
     }
 
@@ -234,56 +288,77 @@ fun BackupSettingsPage(
             }
             Spacer(modifier = Modifier.height(8.dp))
 
-            Button(
-                onClick = {
-                    scope.launch {
-                        val filePath = DataMigrationUtil.getBackupFilePath(context)
-                        val exportSuccess = BackupManager.exportData(records, allConfigs, filePath)
-                        if (exportSuccess) {
-                            val config = WebDavManager.WebDavConfig(
-                                baseUrl = webdavUrl,
-                                username = webdavUsername,
-                                password = webdavPassword,
-                                remotePath = webdavPath
-                            )
-                            val fileName = DataMigrationUtil.generateBackupFileName()
-                            val uploadSuccess = WebDavManager.uploadFile(config, filePath, fileName)
-                            operationResult = if (uploadSuccess) "WebDAV 上传成功！" else "WebDAV 上传失败"
-                        } else {
-                            operationResult = "本地备份失败"
-                        }
-                        showResultDialog = true
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("上传到 WebDAV")
-            }
-            Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = {
+                        scope.launch {
+                            val filePath = DataMigrationUtil.getBackupFilePath(context)
+                            val exportSuccess = BackupManager.exportData(records, allConfigs, filePath)
+                            if (exportSuccess) {
+                                val config = WebDavManager.WebDavConfig(
+                                    baseUrl = webdavUrl,
+                                    username = webdavUsername,
+                                    password = webdavPassword,
+                                    remotePath = webdavPath
+                                )
+                                val fileName = DataMigrationUtil.generateBackupFileName()
+                                val uploadSuccess = WebDavManager.uploadFile(config, filePath, fileName)
+                                operationResult = if (uploadSuccess) "WebDAV 上传成功！" else "WebDAV 上传失败"
+                            } else {
+                                operationResult = "本地备份失败"
+                            }
+                            showResultDialog = true
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("上传到 WebDAV")
+                }
 
-            Button(
-                onClick = {
-                    scope.launch {
-                        val config = WebDavManager.WebDavConfig(
-                            baseUrl = webdavUrl,
-                            username = webdavUsername,
-                            password = webdavPassword,
-                            remotePath = webdavPath
+                Button(
+                    onClick = { loadRemoteFiles() },
+                    modifier = Modifier.weight(1f),
+                    enabled = !isLoading
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
                         )
-                        val remoteFiles = WebDavManager.listFiles(config)
-                        operationResult = if (remoteFiles.isNotEmpty()) {
-                            "云端文件列表:\n${remoteFiles.joinToString("\n")}"
-                        } else {
-                            "云端无备份文件"
-                        }
-                        showResultDialog = true
+                    } else {
+                        Text("从 WebDAV 导入")
                     }
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("查看云端备份")
+                }
             }
         }
+    }
+
+    if (showFilePicker) {
+        AlertDialog(
+            onDismissRequest = { showFilePicker = false },
+            title = { Text("选择备份文件") },
+            text = {
+                Column {
+                    if (remoteFiles.isEmpty()) {
+                        Text("没有找到备份文件")
+                    } else {
+                        remoteFiles.forEach { fileName ->
+                            TextButton(onClick = { importFromWebDav(fileName) }) {
+                                Text(fileName)
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showFilePicker = false }) {
+                    Text("关闭")
+                }
+            }
+        )
     }
 
     if (showResultDialog) {

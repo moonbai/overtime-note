@@ -18,16 +18,17 @@ object PushManager {
 
     fun buildText(record: OvertimeRecord): String {
         val typeStr = when (record.type) {
-            OvertimeType.WORKDAY -> "工作日延时"
+            OvertimeType.WORKDAY -> "工作日"
             OvertimeType.RESTDAY -> "休息日"
-            OvertimeType.HOLIDAY -> "法定节假日"
+            OvertimeType.HOLIDAY -> "节假日"
         }
-        return """日期：${record.date}
-类型：$typeStr
-时间：${record.startTime} - ${record.endTime}
-加班时长：${"%.2f".format(record.duration)}小时
-金额：¥${"%.2f".format(record.money)}
-加班事由：${record.remark.ifBlank { "无" }}"""
+        val reason = record.remark.takeIf { it.isNotBlank() } ?: "无"
+        return """日期: ${record.date}
+类型: $typeStr
+时间: ${record.startTime}-${record.endTime}
+加班时长: ${"%.2f".format(record.duration)}
+金额: ¥${"%.2f".format(record.money)}
+加班事由: $reason""".trimIndent()
     }
 
     suspend fun sendDingTalk(url: String, record: OvertimeRecord): Boolean = withContext(Dispatchers.IO) {
