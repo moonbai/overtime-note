@@ -198,7 +198,7 @@ fun AboutPage(
             AboutItem(
                 icon = {
                     Icon(
-                        Icons.Default.GitHub,
+                        Icons.Default.Code,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
