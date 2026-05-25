@@ -17,7 +17,7 @@ object HolidayManager {
         .readTimeout(10, TimeUnit.SECONDS)
         .build()
 
-    private const val DEFAULT_HOLIDAY_API_URL_TEMPLATE = "https://www.mxnzp.com/api/holiday/list/year/{year}?ignoreHoliday=false&app_id=ojgrietfilvijrvl&app_secret=gXm0O9k54sLdnMyY43KFq0GFLEvEghLB"
+    private const val DEFAULT_HOLIDAY_API_URL_TEMPLATE = "https://api.example.com/holiday/year/{year}"
 
     private val holidayCache = mutableMapOf<String, HolidayInfo>()
 
