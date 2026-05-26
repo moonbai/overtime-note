@@ -126,6 +126,8 @@ fun OvertimeRecordItem(
         OvertimeType.LEAVE_FULL -> "请假(全天)"
     }
     
+    val isLeave = record.type == OvertimeType.LEAVE_HALF || record.type == OvertimeType.LEAVE_FULL
+    
     val dateStr = record.date
 
     Card(
@@ -145,14 +147,14 @@ fun OvertimeRecordItem(
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
-                    text = "¥${"%.2f".format(record.money)}",
+                    text = if (isLeave) "扣除 ${"%.0f".format(record.duration)} 小时" else "¥${"%.2f".format(record.money)}",
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
+                    color = if (isLeave) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "$typeStr | ${record.startTime} - ${record.endTime} | ${"%.2f".format(record.duration)}小时",
+                text = if (isLeave) "$typeStr | 扣除 ${"%.0f".format(record.duration)} 小时" else "$typeStr | ${record.startTime} - ${record.endTime} | ${"%.2f".format(record.duration)}小时",
                 style = MaterialTheme.typography.bodyMedium
             )
             if (record.remark.isNotBlank()) {

@@ -102,9 +102,9 @@ fun AddEditRecordPage(
 
     LaunchedEffect(selectedStartTime, selectedEndTime, selectedType, allConfigs) {
         duration = if (selectedType == OvertimeType.LEAVE_HALF) {
-            4.0
+            -4.0
         } else if (selectedType == OvertimeType.LEAVE_FULL) {
-            8.0
+            -8.0
         } else {
             SalaryCalculator.calculateDuration(selectedStartTime, selectedEndTime)
         }
@@ -234,11 +234,11 @@ fun AddEditRecordPage(
                             selectedType = type
                             isLeaveType = true
                             if (type == OvertimeType.LEAVE_HALF) {
-                                duration = 4.0
+                                duration = -4.0
                                 selectedStartTime = "08:00"
                                 selectedEndTime = "12:00"
                             } else {
-                                duration = 8.0
+                                duration = -8.0
                                 selectedStartTime = "08:00"
                                 selectedEndTime = "17:00"
                             }
