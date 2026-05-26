@@ -275,6 +275,9 @@ fun AccentColorItem(
         AccentColor.TEAL -> Color(0xFF00897B)
         AccentColor.ORANGE -> Color(0xFFF57C00)
         AccentColor.PINK -> Color(0xFFC2185B)
+        AccentColor.RED -> Color(0xFFD32F2F)
+        AccentColor.GREEN -> Color(0xFF388E3C)
+        AccentColor.YELLOW -> Color(0xFFF9A825)
     }
 
     Column(
@@ -312,6 +315,9 @@ fun AccentColorItem(
                 AccentColor.TEAL -> "青色"
                 AccentColor.ORANGE -> "橙色"
                 AccentColor.PINK -> "粉色"
+                AccentColor.RED -> "红色"
+                AccentColor.GREEN -> "绿色"
+                AccentColor.YELLOW -> "黄色"
             },
             style = MaterialTheme.typography.bodySmall,
             color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant

@@ -7,9 +7,8 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.calculateTopPadding
-import androidx.compose.foundation.layout.calculateBottomPadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
@@ -150,10 +149,6 @@ fun MainNav() {
                     onNavigateToSettings = {
                         navController.navigate(BottomNavScreen.Settings.route)
                         currentBottomNavScreen = BottomNavScreen.Settings
-                    },
-                    onNavigateToStatistics = {
-                        navController.navigate(BottomNavScreen.Statistics.route)
-                        currentBottomNavScreen = BottomNavScreen.Statistics
                     }
                 )
             }
