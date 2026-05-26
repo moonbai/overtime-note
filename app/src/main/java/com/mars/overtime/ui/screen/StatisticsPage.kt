@@ -76,15 +76,7 @@ fun StatisticsPage() {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("统计", style = MaterialTheme.typography.titleLarge)
-                    }
-                },
+                title = { Text("统计") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
@@ -95,7 +87,7 @@ fun StatisticsPage() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .padding(horizontal = 16.dp)
         ) {
             item {
                 // 月份选择器
@@ -178,6 +170,14 @@ fun StatisticsPage() {
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
+                        if (baseSalary == 0.0) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "请先在薪资设置中配置基础薪资",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
@@ -275,12 +275,16 @@ fun StatisticsPage() {
                                         OvertimeType.WORKDAY -> "工作日"
                                         OvertimeType.RESTDAY -> "休息日"
                                         OvertimeType.HOLIDAY -> "节假日"
+                                        OvertimeType.LEAVE_HALF -> "请假(半天)"
+                                        OvertimeType.LEAVE_FULL -> "请假(全天)"
                                     },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = when (record.type) {
                                         OvertimeType.WORKDAY -> MaterialTheme.colorScheme.primary
                                         OvertimeType.RESTDAY -> MaterialTheme.colorScheme.secondary
                                         OvertimeType.HOLIDAY -> Color(0xFFFF5722)
+                                        OvertimeType.LEAVE_HALF -> Color(0xFF9C27B0)
+                                        OvertimeType.LEAVE_FULL -> Color(0xFF9C27B0)
                                     }
                                 )
                             }
@@ -366,5 +370,7 @@ private fun calculateSalary(
         OvertimeType.WORKDAY -> record.duration * hourlyRate * workdayRate
         OvertimeType.RESTDAY -> record.duration * hourlyRate * restdayRate
         OvertimeType.HOLIDAY -> record.duration * hourlyRate * holidayRate
+        OvertimeType.LEAVE_HALF -> 0.0
+        OvertimeType.LEAVE_FULL -> 0.0
     }
 }

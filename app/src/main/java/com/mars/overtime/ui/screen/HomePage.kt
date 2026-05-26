@@ -37,13 +37,17 @@ fun HomePage(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("加班记") }
+                title = { Text("加班记") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
+            LargeFloatingActionButton(
                 onClick = onNavigateToAddEdit,
-                modifier = Modifier.size(64.dp)
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ) {
                 Icon(
                     Icons.Default.Add,
@@ -57,7 +61,7 @@ fun HomePage(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp)
+                .padding(horizontal = 16.dp)
         ) {
             if (records.isEmpty()) {
                 item {
@@ -118,6 +122,8 @@ fun OvertimeRecordItem(
         OvertimeType.WORKDAY -> "工作日延时"
         OvertimeType.RESTDAY -> "休息日"
         OvertimeType.HOLIDAY -> "法定节假日"
+        OvertimeType.LEAVE_HALF -> "请假(半天)"
+        OvertimeType.LEAVE_FULL -> "请假(全天)"
     }
     
     val dateStr = record.date
