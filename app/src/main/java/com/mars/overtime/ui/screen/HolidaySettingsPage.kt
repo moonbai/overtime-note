@@ -7,10 +7,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.mars.overtime.OvertimeApplication
 import com.mars.overtime.database.AppConfig
+import com.mars.overtime.util.HolidayDataSource
 import com.mars.overtime.util.HolidayManager
 import kotlinx.coroutines.launch
 import java.time.Year
@@ -26,13 +28,27 @@ fun HolidaySettingsPage(
 
     val allConfigs by configDao.getAllConfigs().collectAsState(initial = emptyList())
 
+    var dataSource by remember { mutableStateOf(HolidayDataSource.TIMOR) }
     var customApiUrl by remember { mutableStateOf("") }
+    var mxnzpAppId by remember { mutableStateOf("") }
+    var mxnzpAppSecret by remember { mutableStateOf("") }
+    var mxnzpIgnoreHoliday by remember { mutableStateOf(false) }
     var updateResult by remember { mutableStateOf("") }
     var showResultDialog by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
 
     LaunchedEffect(allConfigs) {
-        customApiUrl = allConfigs.find { it.key == "holiday_api_url" }?.value ?: ""
+        dataSource = allConfigs.find { it.key == "holiday_data_source" }?.value?.let {
+            try {
+                HolidayDataSource.valueOf(it.uppercase())
+            } catch (e: Exception) {
+                HolidayDataSource.TIMOR
+            }
+        } ?: HolidayDataSource.TIMOR
+        customApiUrl = allConfigs.find { it.key == "holiday_custom_url" }?.value ?: ""
+        mxnzpAppId = allConfigs.find { it.key == "mxnzp_app_id" }?.value ?: ""
+        mxnzpAppSecret = allConfigs.find { it.key == "mxnzp_app_secret" }?.value ?: ""
+        mxnzpIgnoreHoliday = allConfigs.find { it.key == "mxnzp_ignore_holiday" }?.value?.toBoolean() ?: false
     }
 
     Scaffold(
@@ -43,7 +59,10 @@ fun HolidaySettingsPage(
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "返回")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             )
         }
     ) { padding ->
@@ -54,63 +73,141 @@ fun HolidaySettingsPage(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            Text("自定义节假日API", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                "支持 {year} 或 \${years} 占位符自动替换年份\n" +
-                    "留空则使用默认API",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+            Text("数据源选择", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            HolidayDataSource.values().forEach { source ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = dataSource == source,
+                        onClick = { 
+                            dataSource = source
+                            scope.launch {
+                                configDao.saveConfig(AppConfig("holiday_data_source", source.name))
+                            }
+                        }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = when (source) {
+                            HolidayDataSource.TIMOR -> "Timor API"
+                            HolidayDataSource.MXNZP -> "MXNZP API"
+                            HolidayDataSource.CUSTOM -> "自定义 API"
+                        },
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
 
-            OutlinedTextField(
-                value = customApiUrl,
-                onValueChange = { customApiUrl = it },
-                label = { Text("自定义API地址") },
-                placeholder = { Text("https://api.example.com/holiday?year={year}") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+
+            if (dataSource == HolidayDataSource.MXNZP) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("MXNZP 配置", style = MaterialTheme.typography.titleMedium)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        OutlinedTextField(
+                            value = mxnzpAppId,
+                            onValueChange = { mxnzpAppId = it },
+                            label = { Text("App ID") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        OutlinedTextField(
+                            value = mxnzpAppSecret,
+                            onValueChange = { mxnzpAppSecret = it },
+                            label = { Text("App Secret") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("忽略节假日", style = MaterialTheme.typography.bodyLarge)
+                            Switch(
+                                checked = mxnzpIgnoreHoliday,
+                                onCheckedChange = {
+                                    mxnzpIgnoreHoliday = it
+                                    scope.launch {
+                                        configDao.saveConfig(AppConfig("mxnzp_ignore_holiday", it.toString()))
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            if (dataSource == HolidayDataSource.CUSTOM) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("自定义 API 配置", style = MaterialTheme.typography.titleMedium)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            "支持 {year} 或 \${year} 占位符自动替换年份",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        OutlinedTextField(
+                            value = customApiUrl,
+                            onValueChange = { customApiUrl = it },
+                            label = { Text("API 地址") },
+                            placeholder = { Text("https://api.example.com/holiday/year/{year}") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             Button(
                 onClick = {
                     scope.launch {
-                        if (customApiUrl.isBlank()) {
-                            configDao.deleteConfig("holiday_api_url")
-                            updateResult = "已重置为默认API"
-                        } else {
-                            configDao.saveConfigs(listOf(AppConfig("holiday_api_url", customApiUrl)))
-                            updateResult = "自定义API已保存"
-                        }
-                        HolidayManager.clearCache()
+                        configDao.saveConfigs(
+                            listOf(
+                                AppConfig("holiday_data_source", dataSource.name),
+                                AppConfig("holiday_custom_url", customApiUrl),
+                                AppConfig("mxnzp_app_id", mxnzpAppId),
+                                AppConfig("mxnzp_app_secret", mxnzpAppSecret),
+                                AppConfig("mxnzp_ignore_holiday", mxnzpIgnoreHoliday.toString())
+                            )
+                        )
+                        updateResult = "配置已保存"
                         showResultDialog = true
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("保存API配置")
+                Text("保存配置")
             }
 
             Spacer(modifier = Modifier.height(24.dp))
             HorizontalDivider()
             Spacer(modifier = Modifier.height(16.dp))
-
-            Text("节假日规则说明", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                "应用会自动识别法定节假日和调休工作日。\n\n" +
-                    "• detailsType 0 → 工作日 → 加班类型为工作日\n" +
-                    "• detailsType 1 → 休息日 → 加班类型为休息日\n" +
-                    "• detailsType 3 → 节假日 → 加班类型为法定节假日\n\n" +
-                    "规则总结:\n" +
-                    "• 周末休息日 → 休息日\n" +
-                    "• 法定节假日 → 节假日\n" +
-                    "• 调休工作日 → 工作日",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Spacer(modifier = Modifier.height(24.dp))
 
             val currentYear = Year.now().value.toString()
             Text("当前年份: $currentYear", style = MaterialTheme.typography.titleMedium)
@@ -139,9 +236,9 @@ fun HolidaySettingsPage(
                         modifier = Modifier.size(20.dp),
                         strokeWidth = 2.dp
                     )
-                } else {
-                    Text("手动更新节假日规则")
+                    Spacer(modifier = Modifier.width(8.dp))
                 }
+                Text("手动更新节假日规则")
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -152,7 +249,11 @@ fun HolidaySettingsPage(
                     updateResult = "节假日缓存已清除"
                     showResultDialog = true
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
             ) {
                 Text("清除缓存")
             }

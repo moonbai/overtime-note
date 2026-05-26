@@ -1,8 +1,5 @@
 package com.mars.overtime.ui
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -34,9 +31,14 @@ sealed class BottomNavScreen(val route: String) {
 fun MainNav() {
     val navController = rememberNavController()
     var currentBottomNavScreen by remember { mutableStateOf<BottomNavScreen>(BottomNavScreen.Home) }
-    var showBottomBar by remember { mutableStateOf(true) }
     val quickReportMode by ThemeManager.quickReportMode.collectAsState()
     val bottomBarStyle by ThemeManager.bottomBarStyle.collectAsState()
+    val currentRoute by navController.currentBackStackEntryFlow.collectAsState(initial = null)
+    
+    val isMainScreen = remember(currentRoute) {
+        val route = currentRoute?.destination?.route
+        route in listOf(BottomNavScreen.Statistics.route, BottomNavScreen.Home.route, BottomNavScreen.Settings.route)
+    }
 
     LaunchedEffect(Unit) {
         try {
@@ -57,56 +59,43 @@ fun MainNav() {
 
     val onNavigateToAddEdit: () -> Unit = {
         navController.navigate("add_edit_record")
-        showBottomBar = false
     }
 
     val onNavigateToAppearanceSettings: () -> Unit = {
         navController.navigate("appearance_settings")
-        showBottomBar = false
     }
 
     val onNavigateToPushSettings: () -> Unit = {
         navController.navigate("push_settings")
-        showBottomBar = false
     }
 
     val onNavigateToSalarySettings: () -> Unit = {
         navController.navigate("salary_settings")
-        showBottomBar = false
     }
 
     val onNavigateToCalendarSettings: () -> Unit = {
         navController.navigate("calendar_settings")
-        showBottomBar = false
     }
 
     val onNavigateToBackupSettings: () -> Unit = {
         navController.navigate("backup_settings")
-        showBottomBar = false
     }
 
     val onNavigateToHolidaySettings: () -> Unit = {
         navController.navigate("holiday_settings")
-        showBottomBar = false
     }
 
     val onNavigateToAbout: () -> Unit = {
         navController.navigate("about")
-        showBottomBar = false
     }
 
     val onNavigateBack: () -> Unit = {
         navController.popBackStack()
-        showBottomBar = true
     }
 
     Scaffold(
         bottomBar = {
-            AnimatedVisibility(
-                visible = showBottomBar,
-                enter = fadeIn(animationSpec = tween(150)),
-                exit = fadeOut(animationSpec = tween(150))
-            ) {
+            if (isMainScreen) {
                 BottomNavigationBar(
                     onNavigateToStatistics = {
                         if (currentBottomNavScreen != BottomNavScreen.Statistics) {
@@ -151,21 +140,15 @@ fun MainNav() {
         NavHost(
             navController = navController,
             startDestination = BottomNavScreen.Home.route,
-            modifier = Modifier.padding(paddingValues),
-            enterTransition = { fadeIn(animationSpec = tween(200)) },
-            exitTransition = { fadeOut(animationSpec = tween(200)) },
-            popEnterTransition = { fadeIn(animationSpec = tween(200)) },
-            popExitTransition = { fadeOut(animationSpec = tween(200)) }
+            modifier = Modifier.padding(paddingValues)
         ) {
             composable(BottomNavScreen.Statistics.route) {
                 currentBottomNavScreen = BottomNavScreen.Statistics
-                showBottomBar = true
                 StatisticsPage()
             }
 
             composable(BottomNavScreen.Home.route) {
                 currentBottomNavScreen = BottomNavScreen.Home
-                showBottomBar = true
                 HomePage(
                     onNavigateToAddEdit = onNavigateToAddEdit,
                     onNavigateToSettings = {
@@ -181,7 +164,6 @@ fun MainNav() {
 
             composable(BottomNavScreen.Settings.route) {
                 currentBottomNavScreen = BottomNavScreen.Settings
-                showBottomBar = true
                 SettingsPage(
                     onNavigateToAppearanceSettings = onNavigateToAppearanceSettings,
                     onNavigateToPushSettings = onNavigateToPushSettings,
@@ -194,59 +176,35 @@ fun MainNav() {
             }
 
             composable("add_edit_record") {
-                showBottomBar = false
-                AddEditRecordPage(
-                    onNavigateBack = onNavigateBack
-                )
+                AddEditRecordPage(onNavigateBack = onNavigateBack)
             }
 
             composable("appearance_settings") {
-                showBottomBar = false
-                AppearanceSettingsPage(
-                    onNavigateBack = onNavigateBack
-                )
+                AppearanceSettingsPage(onNavigateBack = onNavigateBack)
             }
 
             composable("push_settings") {
-                showBottomBar = false
-                PushSettingsPage(
-                    onNavigateBack = onNavigateBack
-                )
+                PushSettingsPage(onNavigateBack = onNavigateBack)
             }
 
             composable("salary_settings") {
-                showBottomBar = false
-                SalarySettingsPage(
-                    onNavigateBack = onNavigateBack
-                )
+                SalarySettingsPage(onNavigateBack = onNavigateBack)
             }
 
             composable("calendar_settings") {
-                showBottomBar = false
-                CalendarSettingsPage(
-                    onNavigateBack = onNavigateBack
-                )
+                CalendarSettingsPage(onNavigateBack = onNavigateBack)
             }
 
             composable("backup_settings") {
-                showBottomBar = false
-                BackupSettingsPage(
-                    onNavigateBack = onNavigateBack
-                )
+                BackupSettingsPage(onNavigateBack = onNavigateBack)
             }
 
             composable("holiday_settings") {
-                showBottomBar = false
-                HolidaySettingsPage(
-                    onNavigateBack = onNavigateBack
-                )
+                HolidaySettingsPage(onNavigateBack = onNavigateBack)
             }
 
             composable("about") {
-                showBottomBar = false
-                AboutPage(
-                    onNavigateBack = onNavigateBack
-                )
+                AboutPage(onNavigateBack = onNavigateBack)
             }
         }
     }
@@ -283,31 +241,32 @@ fun BottomNavigationBar(
             onClick = onNavigateToHome,
             icon = {
                 Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .then(
-                            if (quickReportMode) {
-                                Modifier
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.primary)
-                            } else {
-                                Modifier
-                            }
-                        ),
+                    modifier = Modifier.size(56.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = if (quickReportMode) Icons.Default.Add else Icons.Default.Home,
-                        contentDescription = if (bottomBarStyle == BottomBarStyle.ICON_ONLY) {
-                            if (quickReportMode) "快速提报" else "首页"
-                        } else null,
-                        tint = if (quickReportMode) {
-                            MaterialTheme.colorScheme.onPrimary
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                        modifier = Modifier.size(if (quickReportMode) 28.dp else 24.dp)
-                    )
+                    if (quickReportMode) {
+                        Box(
+                            modifier = Modifier
+                                .size(52.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = if (bottomBarStyle == BottomBarStyle.ICON_ONLY) "快速提报" else null,
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Home,
+                            contentDescription = if (bottomBarStyle == BottomBarStyle.ICON_ONLY) "首页" else null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             },
             label = if (bottomBarStyle != BottomBarStyle.ICON_ONLY) {

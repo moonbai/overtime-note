@@ -118,261 +118,247 @@ fun PushSettingsPage(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // 钉钉
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("钉钉", style = MaterialTheme.typography.titleMedium)
+                        Switch(
+                            checked = dingtalkUrl.isNotBlank(),
+                            onCheckedChange = { checked ->
+                                dingtalkUrl = if (checked) "https://oapi.dingtalk.com/robot/send?access_token=" else ""
+                            }
+                        )
+                    }
+                    if (dingtalkUrl.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        OutlinedTextField(
+                            value = dingtalkUrl,
+                            onValueChange = { dingtalkUrl = it },
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("钉钉", style = MaterialTheme.typography.titleMedium)
-                            Switch(
-                                checked = dingtalkUrl.isNotBlank(),
-                                onCheckedChange = { checked ->
-                                    if (!checked) {
-                                        dingtalkUrl = ""
-                                    }
-                                }
-                            )
-                        }
-                        if (dingtalkUrl.isNotBlank()) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            OutlinedTextField(
-                                value = dingtalkUrl,
-                                onValueChange = { dingtalkUrl = it },
-                                modifier = Modifier.fillMaxWidth(),
-                                placeholder = { Text("https://oapi.dingtalk.com/robot/send?access_token=xxx") }
-                            )
-                        }
+                            placeholder = { Text("https://oapi.dingtalk.com/robot/send?access_token=xxx") }
+                        )
                     }
                 }
+            }
 
-                Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-                // 飞书
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
+            // 飞书
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("飞书", style = MaterialTheme.typography.titleMedium)
+                        Switch(
+                            checked = feishuUrl.isNotBlank(),
+                            onCheckedChange = { checked ->
+                                feishuUrl = if (checked) "https://open.feishu.cn/open-apis/bot/v2/hook/" else ""
+                            }
+                        )
+                    }
+                    if (feishuUrl.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        OutlinedTextField(
+                            value = feishuUrl,
+                            onValueChange = { feishuUrl = it },
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("飞书", style = MaterialTheme.typography.titleMedium)
-                            Switch(
-                                checked = feishuUrl.isNotBlank(),
-                                onCheckedChange = { checked ->
-                                    if (!checked) {
-                                        feishuUrl = ""
-                                    }
-                                }
-                            )
-                        }
-                        if (feishuUrl.isNotBlank()) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            OutlinedTextField(
-                                value = feishuUrl,
-                                onValueChange = { feishuUrl = it },
-                                modifier = Modifier.fillMaxWidth(),
-                                placeholder = { Text("https://open.feishu.cn/open-apis/bot/v2/hook/xxx") }
-                            )
-                        }
+                            placeholder = { Text("https://open.feishu.cn/open-apis/bot/v2/hook/xxx") }
+                        )
                     }
                 }
+            }
 
-                Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-                // 企业微信
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
+            // 企业微信
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("企业微信", style = MaterialTheme.typography.titleMedium)
+                        Switch(
+                            checked = wecomUrl.isNotBlank(),
+                            onCheckedChange = { checked ->
+                                wecomUrl = if (checked) "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=" else ""
+                            }
+                        )
+                    }
+                    if (wecomUrl.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        OutlinedTextField(
+                            value = wecomUrl,
+                            onValueChange = { wecomUrl = it },
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("企业微信", style = MaterialTheme.typography.titleMedium)
-                            Switch(
-                                checked = wecomUrl.isNotBlank(),
-                                onCheckedChange = { checked ->
-                                    if (!checked) {
-                                        wecomUrl = ""
-                                    }
-                                }
-                            )
-                        }
-                        if (wecomUrl.isNotBlank()) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            OutlinedTextField(
-                                value = wecomUrl,
-                                onValueChange = { wecomUrl = it },
-                                modifier = Modifier.fillMaxWidth(),
-                                placeholder = { Text("https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxx") }
-                            )
-                        }
+                            placeholder = { Text("https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxx") }
+                        )
                     }
                 }
+            }
 
-                Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-                // WxPusher
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
+            // WxPusher
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("WxPusher", style = MaterialTheme.typography.titleMedium)
+                        Switch(
+                            checked = wxPusherUrl.isNotBlank(),
+                            onCheckedChange = { checked ->
+                                wxPusherUrl = if (checked) "https://wxpusher.zxazx.com/api/v1/send/" else ""
+                            }
+                        )
+                    }
+                    if (wxPusherUrl.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        OutlinedTextField(
+                            value = wxPusherUrl,
+                            onValueChange = { wxPusherUrl = it },
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("WxPusher", style = MaterialTheme.typography.titleMedium)
-                            Switch(
-                                checked = wxPusherUrl.isNotBlank(),
-                                onCheckedChange = { checked ->
-                                    if (!checked) {
-                                        wxPusherUrl = ""
-                                    }
-                                }
-                            )
-                        }
-                        if (wxPusherUrl.isNotBlank()) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            OutlinedTextField(
-                                value = wxPusherUrl,
-                                onValueChange = { wxPusherUrl = it },
-                                modifier = Modifier.fillMaxWidth(),
-                                placeholder = { Text("https://wxpusher.zxazx.com/api/v1/send/xxx") }
-                            )
-                        }
+                            placeholder = { Text("https://wxpusher.zxazx.com/api/v1/send/xxx") }
+                        )
                     }
                 }
+            }
 
-                Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-                // Telegram
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
+            // Telegram
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Telegram", style = MaterialTheme.typography.titleMedium)
+                        Switch(
+                            checked = telegramUrl.isNotBlank(),
+                            onCheckedChange = { checked ->
+                                telegramUrl = if (checked) "https://api.telegram.org/bot/" else ""
+                            }
+                        )
+                    }
+                    if (telegramUrl.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        OutlinedTextField(
+                            value = telegramUrl,
+                            onValueChange = { telegramUrl = it },
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("Telegram", style = MaterialTheme.typography.titleMedium)
-                            Switch(
-                                checked = telegramUrl.isNotBlank(),
-                                onCheckedChange = { checked ->
-                                    if (!checked) {
-                                        telegramUrl = ""
-                                    }
-                                }
-                            )
-                        }
-                        if (telegramUrl.isNotBlank()) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            OutlinedTextField(
-                                value = telegramUrl,
-                                onValueChange = { telegramUrl = it },
-                                modifier = Modifier.fillMaxWidth(),
-                                placeholder = { Text("https://api.telegram.org/botxxx/sendMessage") }
-                            )
-                        }
+                            placeholder = { Text("https://api.telegram.org/botxxx/sendMessage") }
+                        )
                     }
                 }
+            }
 
-                Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-                // Discord
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
+            // Discord
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Discord", style = MaterialTheme.typography.titleMedium)
+                        Switch(
+                            checked = discordUrl.isNotBlank(),
+                            onCheckedChange = { checked ->
+                                discordUrl = if (checked) "https://discord.com/api/webhooks/" else ""
+                            }
+                        )
+                    }
+                    if (discordUrl.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        OutlinedTextField(
+                            value = discordUrl,
+                            onValueChange = { discordUrl = it },
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("Discord", style = MaterialTheme.typography.titleMedium)
-                            Switch(
-                                checked = discordUrl.isNotBlank(),
-                                onCheckedChange = { checked ->
-                                    if (!checked) {
-                                        discordUrl = ""
-                                    }
-                                }
-                            )
-                        }
-                        if (discordUrl.isNotBlank()) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            OutlinedTextField(
-                                value = discordUrl,
-                                onValueChange = { discordUrl = it },
-                                modifier = Modifier.fillMaxWidth(),
-                                placeholder = { Text("https://discord.com/api/webhooks/xxx/xxx") }
-                            )
-                        }
+                            placeholder = { Text("https://discord.com/api/webhooks/xxx/xxx") }
+                        )
                     }
                 }
+            }
 
-                Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-                // 自定义推送
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
+            // 自定义推送
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("自定义推送", style = MaterialTheme.typography.titleMedium)
+                        Switch(
+                            checked = customUrl.isNotBlank(),
+                            onCheckedChange = { checked ->
+                                customUrl = if (checked) "https://" else ""
+                            }
+                        )
+                    }
+                    if (customUrl.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        OutlinedTextField(
+                            value = customUrl,
+                            onValueChange = { customUrl = it },
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("自定义推送", style = MaterialTheme.typography.titleMedium)
-                            Switch(
-                                checked = customUrl.isNotBlank(),
-                                onCheckedChange = { checked ->
-                                    if (!checked) {
-                                        customUrl = ""
-                                    }
-                                }
-                            )
-                        }
-                        if (customUrl.isNotBlank()) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            OutlinedTextField(
-                                value = customUrl,
-                                onValueChange = { customUrl = it },
-                                modifier = Modifier.fillMaxWidth(),
-                                placeholder = { Text("https://your-server.com/api/push") }
-                            )
-                        }
+                            placeholder = { Text("https://your-server.com/api/push") }
+                        )
                     }
                 }
+            }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
