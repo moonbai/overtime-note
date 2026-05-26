@@ -1,8 +1,5 @@
 name: Build Android App
 # 新增并发配置，同分支、同工作流，新任务自动终止正在运行的旧任务
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 on:
   push:
