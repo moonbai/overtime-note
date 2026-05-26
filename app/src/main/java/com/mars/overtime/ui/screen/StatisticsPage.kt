@@ -1,0 +1,340 @@
+package com.mars.overtime.ui.screen
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowLeft
+import androidx.compose.material.icons.filled.ArrowRight
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.mars.overtime.OvertimeApplication
+import com.mars.overtime.database.OvertimeRecord
+import com.mars.overtime.database.OvertimeType
+import kotlinx.coroutines.launch
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StatisticsPage(
+    onNavigateBack: () -> Unit
+) {
+    val db = OvertimeApplication.database
+    val dao = db.overtimeDao()
+    val configDao = db.configDao()
+    val scope = rememberCoroutineScope()
+    
+    val currentCalendar = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("GMT+8"))
+    var selectedYear by remember { mutableStateOf(currentCalendar.get(java.util.Calendar.YEAR)) }
+    var selectedMonth by remember { mutableStateOf(currentCalendar.get(java.util.Calendar.MONTH) + 1) }
+    
+    val records = remember { mutableStateListOf<OvertimeRecord>() }
+    
+    LaunchedEffect(selectedYear, selectedMonth) {
+        scope.launch {
+            val monthStart = String.format("%04d-%02d-01", selectedYear, selectedMonth)
+            
+            val lastDay = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("GMT+8")).apply {
+                set(selectedYear, selectedMonth - 1, 1)
+                add(java.util.Calendar.MONTH, 1)
+                add(java.util.Calendar.DAY_OF_MONTH, -1)
+            }.get(java.util.Calendar.DAY_OF_MONTH)
+            val monthEnd = String.format("%04d-%02d-%02d", selectedYear, selectedMonth, lastDay)
+            
+            val monthRecords = dao.getRecordsByDateRange(monthStart, monthEnd)
+            records.clear()
+            records.addAll(monthRecords.first())
+        }
+    }
+    
+    val allConfigs by configDao.getAllConfigs().collectAsState(initial = emptyList())
+    
+    val baseSalary = allConfigs.find { it.key == "base_salary" }?.value?.toDoubleOrNull() ?: 0.0
+    val workdayRate = allConfigs.find { it.key == "workday_rate" }?.value?.toDoubleOrNull() ?: 1.5
+    val restdayRate = allConfigs.find { it.key == "restday_rate" }?.value?.toDoubleOrNull() ?: 2.0
+    val holidayRate = allConfigs.find { it.key == "holiday_rate" }?.value?.toDoubleOrNull() ?: 3.0
+    
+    val hourlyRate = if (baseSalary > 0) baseSalary / 21.75 / 8 else 0.0
+    
+    val totalHours = records.sumOf { it.hours }
+    val weekdayRecords = records.filter { it.type == OvertimeType.WEEKDAY.name }
+    val weekendRecords = records.filter { it.type == OvertimeType.WEEKEND.name }
+    val holidayRecords = records.filter { it.type == OvertimeType.HOLIDAY.name }
+    
+    val weekdayHours = weekdayRecords.sumOf { it.hours }
+    val weekendHours = weekendRecords.sumOf { it.hours }
+    val holidayHours = holidayRecords.sumOf { it.hours }
+    
+    val weekdaySalary = weekdayHours * hourlyRate * workdayRate
+    val weekendSalary = weekendHours * hourlyRate * restdayRate
+    val holidaySalary = holidayHours * hourlyRate * holidayRate
+    val totalSalary = weekdaySalary + weekendSalary + holidaySalary
+    
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        IconButton(onClick = {
+                            if (selectedMonth == 1) {
+                                selectedYear--
+                                selectedMonth = 12
+                            } else {
+                                selectedMonth--
+                            }
+                        }) {
+                            Icon(Icons.Default.ArrowLeft, contentDescription = "上一月")
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            text = "$selectedYear年${selectedMonth}月",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        IconButton(onClick = {
+                            if (selectedMonth == 12) {
+                                selectedYear++
+                                selectedMonth = 1
+                            } else {
+                                selectedMonth++
+                            }
+                        }) {
+                            Icon(Icons.Default.ArrowRight, contentDescription = "下一月")
+                        }
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "月度加班汇总",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = String.format("%.1f", totalHours),
+                            style = MaterialTheme.typography.displayLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "小时",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = String.format("约 ¥%.2f", totalSalary),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "分类统计",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            StatItem(
+                                title = "工作日",
+                                hours = weekdayHours,
+                                salary = weekdaySalary,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            StatItem(
+                                title = "休息日",
+                                hours = weekendHours,
+                                salary = weekendSalary,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                            StatItem(
+                                title = "节假日",
+                                hours = holidayHours,
+                                salary = holidaySalary,
+                                color = Color(0xFFFF5722)
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            
+            item {
+                Text(
+                    text = "详细记录",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+            
+            if (records.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 64.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "本月暂无加班记录",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            } else {
+                items(records.sortedByDescending { it.date }) { record ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = record.date,
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                                Text(
+                                    text = when (record.type) {
+                                        OvertimeType.WEEKDAY.name -> "工作日"
+                                        OvertimeType.WEEKEND.name -> "休息日"
+                                        OvertimeType.HOLIDAY.name -> "节假日"
+                                        else -> "其他"
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = when (record.type) {
+                                        OvertimeType.WEEKDAY.name -> MaterialTheme.colorScheme.primary
+                                        OvertimeType.WEEKEND.name -> MaterialTheme.colorScheme.secondary
+                                        OvertimeType.HOLIDAY.name -> Color(0xFFFF5722)
+                                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                    }
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "${record.hours} 小时",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = String.format("¥%.2f", calculateSalary(record, hourlyRate, workdayRate, restdayRate, holidayRate)),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                            if (!record.note.isNullOrEmpty()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = record.note!!,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun StatItem(
+    title: String,
+    hours: Double,
+    salary: Double,
+    color: Color
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.weight(1f)
+    ) {
+        Text(
+            text = String.format("%.1f", hours),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = color
+        )
+        Text(
+            text = "小时",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = String.format("¥%.2f", salary),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.secondary
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+private fun calculateSalary(
+    record: OvertimeRecord,
+    hourlyRate: Double,
+    workdayRate: Double,
+    restdayRate: Double,
+    holidayRate: Double
+): Double {
+    return when (record.type) {
+        OvertimeType.WEEKDAY.name -> record.hours * hourlyRate * workdayRate
+        OvertimeType.WEEKEND.name -> record.hours * hourlyRate * restdayRate
+        OvertimeType.HOLIDAY.name -> record.hours * hourlyRate * holidayRate
+        else -> record.hours * hourlyRate
+    }
+}
