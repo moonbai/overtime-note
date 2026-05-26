@@ -2,7 +2,7 @@
 
 # 加班记 (OverTime-Note)
 
-<img src="https://img.shields.io/badge/Android-10%2B-blue" alt="Android 10+"><img src="https://img.shields.io/badge/Kotlin-1.9.24-purple" alt="Kotlin 1.9.24"><img src="https://img.shields.io/badge/Jetpack%20Compose-2024.10.01-green" alt="Compose"><img src="https://img.shields.io/badge/MiuiX-0.0.35-orange" alt="MiuiX">
+<img src="https://img.shields.io/badge/Android-10%2B-blue" alt="Android 10+"><img src="https://img.shields.io/badge/Kotlin-1.9.24-purple" alt="Kotlin 1.9.24"><img src="https://img.shields.io/badge/Jetpack%20Compose-2024.10.01-green" alt="Compose">
 
 极简个人加班工时记录工具，本地优先、全渠道推送、日历同步、完整备份。
 
