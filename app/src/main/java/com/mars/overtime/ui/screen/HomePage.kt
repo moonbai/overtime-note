@@ -7,7 +7,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,17 +37,19 @@ fun HomePage(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("加班记") },
-                actions = {
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = "设置")
-                    }
-                }
+                title = { Text("加班记") }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToAddEdit) {
-                Icon(Icons.Default.Add, contentDescription = "新建")
+            FloatingActionButton(
+                onClick = onNavigateToAddEdit,
+                modifier = Modifier.size(64.dp)
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "新建",
+                    modifier = Modifier.size(32.dp)
+                )
             }
         }
     ) { padding ->

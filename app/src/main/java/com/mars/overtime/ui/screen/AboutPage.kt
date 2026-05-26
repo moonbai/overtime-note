@@ -68,8 +68,8 @@ fun AboutPage(
 
             Box(
                 modifier = Modifier
-                    .size(100.dp)
-                    .clip(RoundedCornerShape(24.dp)),
+                    .size(140.dp)
+                    .clip(RoundedCornerShape(32.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 appIcon?.let { bitmap ->
@@ -77,13 +77,13 @@ fun AboutPage(
                         bitmap = bitmap.asImageBitmap(),
                         contentDescription = "应用图标",
                         contentScale = ContentScale.Fit,
-                        modifier = Modifier.size(70.dp)
+                        modifier = Modifier.size(110.dp)
                     )
                 } ?: Icon(
                     imageVector = Icons.Default.Celebration,
                     contentDescription = "应用图标",
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(50.dp)
+                    modifier = Modifier.size(80.dp)
                 )
             }
 
