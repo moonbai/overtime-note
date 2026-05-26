@@ -21,7 +21,19 @@ enum class ThemeMode {
 }
 
 enum class AccentColor {
-    BLUE, PURPLE, TEAL, ORANGE, PINK
+    BLUE, PURPLE, TEAL, ORANGE, PINK, RED, GREEN, YELLOW
+}
+
+enum class FontScale {
+    SMALL, NORMAL, LARGE, EXTRA_LARGE
+}
+
+enum class RadiusLevel {
+    SMALL, MEDIUM, LARGE, EXTRA_LARGE
+}
+
+enum class BottomBarStyle {
+    ICON_AND_TEXT, ICON_ONLY, TEXT_ONLY
 }
 
 private val BlueColorScheme = lightColorScheme(
@@ -84,6 +96,42 @@ private val PinkDarkColorScheme = darkColorScheme(
     tertiary = Color(0xFFFF80AB)
 )
 
+private val RedColorScheme = lightColorScheme(
+    primary = Color(0xFFD32F2F),
+    secondary = Color(0xFFE53935),
+    tertiary = Color(0xFFFF5252)
+)
+
+private val RedDarkColorScheme = darkColorScheme(
+    primary = Color(0xFFFFCDD2),
+    secondary = Color(0xFFEF9A9A),
+    tertiary = Color(0xFFFF8A80)
+)
+
+private val GreenColorScheme = lightColorScheme(
+    primary = Color(0xFF388E3C),
+    secondary = Color(0xFF43A047),
+    tertiary = Color(0xFF66BB6A)
+)
+
+private val GreenDarkColorScheme = darkColorScheme(
+    primary = Color(0xFFA5D6A7),
+    secondary = Color(0xFF81C784),
+    tertiary = Color(0xFFAED581)
+)
+
+private val YellowColorScheme = lightColorScheme(
+    primary = Color(0xFFF9A825),
+    secondary = Color(0xFFFFC107),
+    tertiary = Color(0xFFFFEB3B)
+)
+
+private val YellowDarkColorScheme = darkColorScheme(
+    primary = Color(0xFFFFF176),
+    secondary = Color(0xFFFFD54F),
+    tertiary = Color(0xFFFFEA00)
+)
+
 @Composable
 fun OvertimeTheme(
     content: @Composable () -> Unit
@@ -94,6 +142,10 @@ fun OvertimeTheme(
     val themeMode by ThemeManager.themeMode.collectAsState()
     val accentColor by ThemeManager.accentColor.collectAsState()
     val dynamicColor by ThemeManager.dynamicColor.collectAsState()
+    val fontScale by ThemeManager.fontScale.collectAsState()
+    val radiusLevel by ThemeManager.radiusLevel.collectAsState()
+    val bottomBarStyle by ThemeManager.bottomBarStyle.collectAsState()
+    val quickReportMode by ThemeManager.quickReportMode.collectAsState()
 
     LaunchedEffect(Unit) {
         try {
@@ -102,6 +154,10 @@ fun OvertimeTheme(
             val themeModeConfig = configDao.getConfig("theme_mode")
             val accentColorConfig = configDao.getConfig("accent_color")
             val dynamicColorConfig = configDao.getConfig("dynamic_color")
+            val fontScaleConfig = configDao.getConfig("font_scale")
+            val radiusLevelConfig = configDao.getConfig("radius_level")
+            val bottomBarStyleConfig = configDao.getConfig("bottom_bar_style")
+            val quickReportModeConfig = configDao.getConfig("quick_report_mode")
 
             themeModeConfig?.value?.let { value ->
                 ThemeManager.updateThemeMode(ThemeMode.valueOf(value))
@@ -111,6 +167,18 @@ fun OvertimeTheme(
             }
             dynamicColorConfig?.value?.let { value ->
                 ThemeManager.updateDynamicColor(value.toBoolean())
+            }
+            fontScaleConfig?.value?.let { value ->
+                ThemeManager.updateFontScale(FontScale.valueOf(value))
+            }
+            radiusLevelConfig?.value?.let { value ->
+                ThemeManager.updateRadiusLevel(RadiusLevel.valueOf(value))
+            }
+            bottomBarStyleConfig?.value?.let { value ->
+                ThemeManager.updateBottomBarStyle(BottomBarStyle.valueOf(value))
+            }
+            quickReportModeConfig?.value?.let { value ->
+                ThemeManager.updateQuickReportMode(value.toBoolean())
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -134,6 +202,9 @@ fun OvertimeTheme(
                 AccentColor.TEAL -> TealDarkColorScheme
                 AccentColor.ORANGE -> OrangeDarkColorScheme
                 AccentColor.PINK -> PinkDarkColorScheme
+                AccentColor.RED -> RedDarkColorScheme
+                AccentColor.GREEN -> GreenDarkColorScheme
+                AccentColor.YELLOW -> YellowDarkColorScheme
             }
         }
         else -> {
@@ -143,6 +214,9 @@ fun OvertimeTheme(
                 AccentColor.TEAL -> TealColorScheme
                 AccentColor.ORANGE -> OrangeColorScheme
                 AccentColor.PINK -> PinkColorScheme
+                AccentColor.RED -> RedColorScheme
+                AccentColor.GREEN -> GreenColorScheme
+                AccentColor.YELLOW -> YellowColorScheme
             }
         }
     }
@@ -206,6 +280,50 @@ suspend fun saveDynamicColor(enabled: Boolean) {
         val db = OvertimeApplication.database
         val configDao = db.configDao()
         configDao.saveConfig(com.mars.overtime.database.AppConfig("dynamic_color", enabled.toString()))
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
+
+suspend fun saveFontScale(scale: FontScale) {
+    try {
+        ThemeManager.updateFontScale(scale)
+        val db = OvertimeApplication.database
+        val configDao = db.configDao()
+        configDao.saveConfig(com.mars.overtime.database.AppConfig("font_scale", scale.name))
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
+
+suspend fun saveRadiusLevel(level: RadiusLevel) {
+    try {
+        ThemeManager.updateRadiusLevel(level)
+        val db = OvertimeApplication.database
+        val configDao = db.configDao()
+        configDao.saveConfig(com.mars.overtime.database.AppConfig("radius_level", level.name))
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
+
+suspend fun saveBottomBarStyle(style: BottomBarStyle) {
+    try {
+        ThemeManager.updateBottomBarStyle(style)
+        val db = OvertimeApplication.database
+        val configDao = db.configDao()
+        configDao.saveConfig(com.mars.overtime.database.AppConfig("bottom_bar_style", style.name))
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
+
+suspend fun saveQuickReportMode(enabled: Boolean) {
+    try {
+        ThemeManager.updateQuickReportMode(enabled)
+        val db = OvertimeApplication.database
+        val configDao = db.configDao()
+        configDao.saveConfig(com.mars.overtime.database.AppConfig("quick_report_mode", enabled.toString()))
     } catch (e: Exception) {
         e.printStackTrace()
     }

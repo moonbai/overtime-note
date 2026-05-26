@@ -42,6 +42,7 @@ fun AppearanceSettingsPage(
     val selectedThemeMode by ThemeManager.themeMode.collectAsState()
     val selectedAccentColor by ThemeManager.accentColor.collectAsState()
     val dynamicColor by ThemeManager.dynamicColor.collectAsState()
+    val quickReportMode by ThemeManager.quickReportMode.collectAsState()
 
     LaunchedEffect(Unit) {
         try {
@@ -50,6 +51,7 @@ fun AppearanceSettingsPage(
             val themeModeConfig = configDao.getConfig("theme_mode")
             val accentColorConfig = configDao.getConfig("accent_color")
             val dynamicColorConfig = configDao.getConfig("dynamic_color")
+            val quickReportModeConfig = configDao.getConfig("quick_report_mode")
 
             themeModeConfig?.value?.let { value ->
                 ThemeManager.updateThemeMode(ThemeMode.valueOf(value))
@@ -59,6 +61,9 @@ fun AppearanceSettingsPage(
             }
             dynamicColorConfig?.value?.let { value ->
                 ThemeManager.updateDynamicColor(value.toBoolean())
+            }
+            quickReportModeConfig?.value?.let { value ->
+                ThemeManager.updateQuickReportMode(value.toBoolean())
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -146,6 +151,38 @@ fun AppearanceSettingsPage(
                     checked = dynamicColor,
                     onCheckedChange = { enabled ->
                         scope.launch { saveDynamicColor(enabled) }
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "快速提报模式",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = "开启后底栏中间按钮变成提交按钮，点击直接进入提报界面",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(
+                    checked = quickReportMode,
+                    onCheckedChange = { enabled ->
+                        scope.launch { 
+                            try {
+                                com.mars.overtime.ui.theme.saveQuickReportMode(enabled)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
                     }
                 )
             }
