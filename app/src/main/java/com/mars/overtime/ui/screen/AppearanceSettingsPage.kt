@@ -11,11 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,12 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import com.mars.overtime.ui.theme.AccentColor
-import com.mars.overtime.ui.theme.ThemeManager
-import com.mars.overtime.ui.theme.ThemeMode
-import com.mars.overtime.ui.theme.saveAccentColor
-import com.mars.overtime.ui.theme.saveDynamicColor
-import com.mars.overtime.ui.theme.saveThemeMode
+import com.mars.overtime.ui.theme.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,6 +33,8 @@ fun AppearanceSettingsPage(
     val selectedThemeMode by ThemeManager.themeMode.collectAsState()
     val selectedAccentColor by ThemeManager.accentColor.collectAsState()
     val dynamicColor by ThemeManager.dynamicColor.collectAsState()
+    val fontScale by ThemeManager.fontScale.collectAsState()
+    val bottomBarStyle by ThemeManager.bottomBarStyle.collectAsState()
     val quickReportMode by ThemeManager.quickReportMode.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -51,6 +44,8 @@ fun AppearanceSettingsPage(
             val themeModeConfig = configDao.getConfig("theme_mode")
             val accentColorConfig = configDao.getConfig("accent_color")
             val dynamicColorConfig = configDao.getConfig("dynamic_color")
+            val fontScaleConfig = configDao.getConfig("font_scale")
+            val bottomBarStyleConfig = configDao.getConfig("bottom_bar_style")
             val quickReportModeConfig = configDao.getConfig("quick_report_mode")
 
             themeModeConfig?.value?.let { value ->
@@ -61,6 +56,12 @@ fun AppearanceSettingsPage(
             }
             dynamicColorConfig?.value?.let { value ->
                 ThemeManager.updateDynamicColor(value.toBoolean())
+            }
+            fontScaleConfig?.value?.let { value ->
+                ThemeManager.updateFontScale(FontScale.valueOf(value))
+            }
+            bottomBarStyleConfig?.value?.let { value ->
+                ThemeManager.updateBottomBarStyle(BottomBarStyle.valueOf(value))
             }
             quickReportModeConfig?.value?.let { value ->
                 ThemeManager.updateQuickReportMode(value.toBoolean())
@@ -78,7 +79,10 @@ fun AppearanceSettingsPage(
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "返回")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             )
         }
     ) { padding ->
@@ -157,6 +161,90 @@ fun AppearanceSettingsPage(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            Text(
+                text = "强调色",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = if (dynamicColor) "开启动态颜色时，强调色将混合到主题中" else "选择应用的主题强调色",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(AccentColor.values()) { color ->
+                    AccentColorItem(
+                        color = color,
+                        selected = selectedAccentColor == color,
+                        onClick = {
+                            scope.launch { saveAccentColor(color) }
+                        }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "字体大小",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FontScale.values().forEach { scale ->
+                    FontScaleChip(
+                        title = ThemeManager.getFontScaleName(scale),
+                        selected = fontScale == scale,
+                        onClick = {
+                            scope.launch { saveFontScale(scale) }
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "底栏样式",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                BottomBarStyle.values().forEach { style ->
+                    BottomBarStyleCard(
+                        title = ThemeManager.getBottomBarStyleName(style),
+                        icon = when (style) {
+                            BottomBarStyle.ICON_AND_TEXT -> Icons.Default.ViewDay
+                            BottomBarStyle.ICON_ONLY -> Icons.Default.Image
+                            BottomBarStyle.TEXT_ONLY -> Icons.Default.TextFields
+                        },
+                        selected = bottomBarStyle == style,
+                        onClick = {
+                            scope.launch { saveBottomBarStyle(style) }
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -176,38 +264,15 @@ fun AppearanceSettingsPage(
                 Switch(
                     checked = quickReportMode,
                     onCheckedChange = { enabled ->
-                        scope.launch { 
+                        scope.launch {
                             try {
-                                com.mars.overtime.ui.theme.saveQuickReportMode(enabled)
+                                saveQuickReportMode(enabled)
                             } catch (e: Exception) {
                                 e.printStackTrace()
                             }
                         }
                     }
                 )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                text = "强调色",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(AccentColor.values()) { color ->
-                    AccentColorItem(
-                        color = color,
-                        selected = selectedAccentColor == color,
-                        onClick = {
-                            scope.launch { saveAccentColor(color) }
-                        }
-                    )
-                }
             }
         }
     }
@@ -238,7 +303,7 @@ fun ThemeModeCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
@@ -248,12 +313,81 @@ fun ThemeModeCard(
                     MaterialTheme.colorScheme.primary
                 else
                     MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(28.dp)
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
+                color = if (selected)
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun FontScaleChip(
+    title: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(title, style = MaterialTheme.typography.bodySmall) },
+        modifier = modifier,
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+    )
+}
+
+@Composable
+fun BottomBarStyleCard(
+    title: String,
+    icon: ImageVector,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected)
+                MaterialTheme.colorScheme.primaryContainer
+            else
+                MaterialTheme.colorScheme.surfaceVariant
+        ),
+        border = if (selected)
+            androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+        else
+            null
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                tint = if (selected)
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodySmall,
                 color = if (selected)
                     MaterialTheme.colorScheme.primary
                 else

@@ -21,60 +21,58 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StatisticsPage(
-    onNavigateBack: () -> Unit
-) {
+fun StatisticsPage() {
     val db = OvertimeApplication.database
     val dao = db.overtimeDao()
     val configDao = db.configDao()
     val scope = rememberCoroutineScope()
-    
+
     val currentCalendar = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("GMT+8"))
     var selectedYear by remember { mutableStateOf(currentCalendar.get(java.util.Calendar.YEAR)) }
     var selectedMonth by remember { mutableStateOf(currentCalendar.get(java.util.Calendar.MONTH) + 1) }
-    
+
     val records = remember { mutableStateListOf<OvertimeRecord>() }
-    
+
     LaunchedEffect(selectedYear, selectedMonth) {
         scope.launch {
             val monthStart = String.format("%04d-%02d-01", selectedYear, selectedMonth)
-            
+
             val lastDay = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("GMT+8")).apply {
                 set(selectedYear, selectedMonth - 1, 1)
                 add(java.util.Calendar.MONTH, 1)
                 add(java.util.Calendar.DAY_OF_MONTH, -1)
             }.get(java.util.Calendar.DAY_OF_MONTH)
             val monthEnd = String.format("%04d-%02d-%02d", selectedYear, selectedMonth, lastDay)
-            
+
             val monthRecords = dao.getRecordsByDateRange(monthStart, monthEnd)
             records.clear()
             records.addAll(monthRecords.first())
         }
     }
-    
+
     val allConfigs by configDao.getAllConfigs().collectAsState(initial = emptyList())
-    
+
     val baseSalary = allConfigs.find { it.key == "base_salary" }?.value?.toDoubleOrNull() ?: 0.0
     val workdayRate = allConfigs.find { it.key == "workday_rate" }?.value?.toDoubleOrNull() ?: 1.5
     val restdayRate = allConfigs.find { it.key == "restday_rate" }?.value?.toDoubleOrNull() ?: 2.0
     val holidayRate = allConfigs.find { it.key == "holiday_rate" }?.value?.toDoubleOrNull() ?: 3.0
-    
+
     val hourlyRate = if (baseSalary > 0) baseSalary / 21.75 / 8 else 0.0
-    
+
     val totalHours = records.sumOf { it.duration }
     val workdayRecords = records.filter { it.type == OvertimeType.WORKDAY }
     val restdayRecords = records.filter { it.type == OvertimeType.RESTDAY }
     val holidayRecords = records.filter { it.type == OvertimeType.HOLIDAY }
-    
+
     val workdayHours = workdayRecords.sumOf { it.duration }
     val restdayHours = restdayRecords.sumOf { it.duration }
     val holidayHours = holidayRecords.sumOf { it.duration }
-    
+
     val workdaySalary = workdayHours * hourlyRate * workdayRate
     val restdaySalary = restdayHours * hourlyRate * restdayRate
     val holidaySalary = holidayHours * hourlyRate * holidayRate
     val totalSalary = workdaySalary + restdaySalary + holidaySalary
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -111,7 +109,10 @@ fun StatisticsPage(
                             Icon(Icons.Default.ArrowRight, contentDescription = "下一月")
                         }
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             )
         }
     ) { paddingValues ->
@@ -124,52 +125,59 @@ fun StatisticsPage(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
                 ) {
                     Column(
-                        modifier = Modifier.padding(24.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
                             text = "月度加班汇总",
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = String.format("%.1f", totalHours),
-                            style = MaterialTheme.typography.displayLarge,
+                            style = MaterialTheme.typography.displayMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
                             text = "小时",
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = String.format("约 ¥%.2f", totalSalary),
                             style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.secondary
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
-            
+
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             text = "分类统计",
                             style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(bottom = 16.dp)
+                            modifier = Modifier.padding(bottom = 16.dp),
+                            color = MaterialTheme.colorScheme.onSurface
                         )
-                        
+
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly
@@ -197,15 +205,16 @@ fun StatisticsPage(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
-            
+
             item {
                 Text(
                     text = "详细记录",
                     style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 8.dp),
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
-            
+
             if (records.isEmpty()) {
                 item {
                     Box(
@@ -227,7 +236,9 @@ fun StatisticsPage(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 8.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        )
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(
@@ -295,7 +306,9 @@ fun StatItem(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxHeight()
+        modifier = Modifier
+            .weight(1f)
+            .padding(horizontal = 8.dp)
     ) {
         Text(
             text = String.format("%.1f", hours),

@@ -5,11 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
@@ -22,18 +20,15 @@ fun SettingsPage(
     onNavigateToCalendarSettings: () -> Unit,
     onNavigateToBackupSettings: () -> Unit,
     onNavigateToHolidaySettings: () -> Unit,
-    onNavigateToAbout: () -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateToAbout: () -> Unit
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("设置") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "返回")
-                    }
-                }
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             )
         }
     ) { padding ->
@@ -43,7 +38,7 @@ fun SettingsPage(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
         ) {
-            SettingsItem("外观设置", "MiuiX 与 Material3 切换", onNavigateToAppearanceSettings)
+            SettingsItem("外观设置", "主题、强调色、字体大小", onNavigateToAppearanceSettings)
             SettingsItem("推送设置", "钉钉、飞书、WxPusher、自定义推送", onNavigateToPushSettings)
             SettingsItem("薪资设置", "基础薪资、加班倍率", onNavigateToSalarySettings)
             SettingsItem("日历同步", "安卓日历同步设置", onNavigateToCalendarSettings)
