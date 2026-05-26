@@ -96,7 +96,7 @@ fun StatisticsPage(
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Text(
-                            text = "$selectedYear年${selectedMonth}月",
+                            text = "${selectedYear}年${selectedMonth}月",
                             style = MaterialTheme.typography.titleLarge
                         )
                         Spacer(modifier = Modifier.width(16.dp))
@@ -295,7 +295,7 @@ fun StatItem(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.weight(1f)
+        modifier = Modifier.fillMaxHeight()
     ) {
         Text(
             text = String.format("%.1f", hours),
