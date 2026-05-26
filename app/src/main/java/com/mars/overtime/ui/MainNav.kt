@@ -220,83 +220,119 @@ fun BottomNavigationBar(
     quickReportMode: Boolean = false,
     bottomBarStyle: BottomBarStyle = BottomBarStyle.ICON_AND_TEXT
 ) {
-    NavigationBar {
-        NavigationBarItem(
-            selected = currentScreen == BottomNavScreen.Statistics,
-            onClick = onNavigateToStatistics,
-            icon = {
-                if (bottomBarStyle != BottomBarStyle.TEXT_ONLY) {
-                    Icon(
-                        imageVector = Icons.Default.Assessment,
-                        contentDescription = if (bottomBarStyle == BottomBarStyle.ICON_ONLY) "统计" else null
-                    )
-                }
-            },
-            label = if (bottomBarStyle != BottomBarStyle.ICON_ONLY) {
-                { Text("统计") }
-            } else null
-        )
-
-        NavigationBarItem(
-            selected = false,
-            onClick = onNavigateToHome,
-            icon = {
-                Box(
-                    modifier = Modifier.size(56.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (quickReportMode) {
-                        Box(
-                            modifier = Modifier
-                                .size(52.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = if (bottomBarStyle == BottomBarStyle.ICON_ONLY) "快速提报" else null,
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-                    } else {
+    if (quickReportMode) {
+        // 快速提报模式 - 特殊样式
+        NavigationBar {
+            NavigationBarItem(
+                selected = currentScreen == BottomNavScreen.Statistics,
+                onClick = onNavigateToStatistics,
+                icon = {
+                    if (bottomBarStyle != BottomBarStyle.TEXT_ONLY) {
                         Icon(
-                            imageVector = Icons.Default.Home,
-                            contentDescription = if (bottomBarStyle == BottomBarStyle.ICON_ONLY) "首页" else null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(24.dp)
+                            imageVector = Icons.Default.Assessment,
+                            contentDescription = if (bottomBarStyle == BottomBarStyle.ICON_ONLY) "统计" else null
+                        )
+                    }
+                },
+                label = if (bottomBarStyle != BottomBarStyle.ICON_ONLY) {
+                    { Text("统计") }
+                } else null
+            )
+
+            // 中间突出的快速提报按钮
+            Box(
+                modifier = Modifier
+                    .padding(vertical = 4.dp)
+                    .size(64.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                androidx.compose.foundation.clickable(
+                    onClick = onNavigateToHome,
+                    shape = CircleShape
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "快速提报",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(32.dp)
                         )
                     }
                 }
-            },
-            label = if (bottomBarStyle != BottomBarStyle.ICON_ONLY) {
-                { Text(if (quickReportMode) "提报" else "首页") }
-            } else null,
-            colors = if (quickReportMode) {
-                NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                    indicatorColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            } else {
-                NavigationBarItemDefaults.colors()
             }
-        )
 
-        NavigationBarItem(
-            selected = currentScreen == BottomNavScreen.Settings,
-            onClick = onNavigateToSettings,
-            icon = {
-                if (bottomBarStyle != BottomBarStyle.TEXT_ONLY) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = if (bottomBarStyle == BottomBarStyle.ICON_ONLY) "设置" else null
-                    )
-                }
-            },
-            label = if (bottomBarStyle != BottomBarStyle.ICON_ONLY) {
-                { Text("设置") }
-            } else null
-        )
+            NavigationBarItem(
+                selected = currentScreen == BottomNavScreen.Settings,
+                onClick = onNavigateToSettings,
+                icon = {
+                    if (bottomBarStyle != BottomBarStyle.TEXT_ONLY) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = if (bottomBarStyle == BottomBarStyle.ICON_ONLY) "设置" else null
+                        )
+                    }
+                },
+                label = if (bottomBarStyle != BottomBarStyle.ICON_ONLY) {
+                    { Text("设置") }
+                } else null
+            )
+        }
+    } else {
+        // 普通模式 - 标准导航栏
+        NavigationBar {
+            NavigationBarItem(
+                selected = currentScreen == BottomNavScreen.Statistics,
+                onClick = onNavigateToStatistics,
+                icon = {
+                    if (bottomBarStyle != BottomBarStyle.TEXT_ONLY) {
+                        Icon(
+                            imageVector = Icons.Default.Assessment,
+                            contentDescription = if (bottomBarStyle == BottomBarStyle.ICON_ONLY) "统计" else null
+                        )
+                    }
+                },
+                label = if (bottomBarStyle != BottomBarStyle.ICON_ONLY) {
+                    { Text("统计") }
+                } else null
+            )
+
+            NavigationBarItem(
+                selected = currentScreen == BottomNavScreen.Home,
+                onClick = onNavigateToHome,
+                icon = {
+                    if (bottomBarStyle != BottomBarStyle.TEXT_ONLY) {
+                        Icon(
+                            imageVector = Icons.Default.Home,
+                            contentDescription = if (bottomBarStyle == BottomBarStyle.ICON_ONLY) "首页" else null
+                        )
+                    }
+                },
+                label = if (bottomBarStyle != BottomBarStyle.ICON_ONLY) {
+                    { Text("首页") }
+                } else null
+            )
+
+            NavigationBarItem(
+                selected = currentScreen == BottomNavScreen.Settings,
+                onClick = onNavigateToSettings,
+                icon = {
+                    if (bottomBarStyle != BottomBarStyle.TEXT_ONLY) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = if (bottomBarStyle == BottomBarStyle.ICON_ONLY) "设置" else null
+                        )
+                    }
+                },
+                label = if (bottomBarStyle != BottomBarStyle.ICON_ONLY) {
+                    { Text("设置") }
+                } else null
+            )
+        }
     }
 }

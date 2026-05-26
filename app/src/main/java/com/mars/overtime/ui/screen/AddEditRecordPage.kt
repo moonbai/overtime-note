@@ -82,6 +82,10 @@ fun AddEditRecordPage(
                     OvertimeType.RESTDAY -> "休息日"
                     OvertimeType.HOLIDAY -> "法定节假日"
                 }
+                // 如果是休息日或节假日，默认开始时间设为8点
+                if (holidayInfoResult == OvertimeType.RESTDAY || holidayInfoResult == OvertimeType.HOLIDAY) {
+                    selectedStartTime = "08:00"
+                }
             } finally {
                 isLoading = false
             }
@@ -274,9 +278,15 @@ fun AddEditRecordPage(
                         onNavigateBack()
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
             ) {
-                Text("保存")
+                Text(
+                    text = "保存",
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
         }
     }

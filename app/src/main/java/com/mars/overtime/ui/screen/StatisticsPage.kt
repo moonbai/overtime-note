@@ -82,32 +82,7 @@ fun StatisticsPage() {
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        IconButton(onClick = {
-                            if (selectedMonth == 1) {
-                                selectedYear--
-                                selectedMonth = 12
-                            } else {
-                                selectedMonth--
-                            }
-                        }) {
-                            Icon(Icons.Default.ArrowLeft, contentDescription = "上一月")
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Text(
-                            text = "${selectedYear}年${selectedMonth}月",
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        IconButton(onClick = {
-                            if (selectedMonth == 12) {
-                                selectedYear++
-                                selectedMonth = 1
-                            } else {
-                                selectedMonth++
-                            }
-                        }) {
-                            Icon(Icons.Default.ArrowRight, contentDescription = "下一月")
-                        }
+                        Text("统计", style = MaterialTheme.typography.titleLarge)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -122,6 +97,50 @@ fun StatisticsPage() {
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
+            item {
+                // 月份选择器
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = {
+                            if (selectedMonth == 1) {
+                                selectedYear--
+                                selectedMonth = 12
+                            } else {
+                                selectedMonth--
+                            }
+                        }) {
+                            Icon(Icons.Default.ArrowLeft, contentDescription = "上一月")
+                        }
+                        Text(
+                            text = "${selectedYear}年${selectedMonth}月",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        IconButton(onClick = {
+                            if (selectedMonth == 12) {
+                                selectedYear++
+                                selectedMonth = 1
+                            } else {
+                                selectedMonth++
+                            }
+                        }) {
+                            Icon(Icons.Default.ArrowRight, contentDescription = "下一月")
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -154,8 +173,9 @@ fun StatisticsPage() {
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = String.format("约 ¥%.2f", totalSalary),
-                            style = MaterialTheme.typography.titleLarge,
+                            text = String.format("¥%.2f", totalSalary),
+                            style = MaterialTheme.typography.displaySmall,
+                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
