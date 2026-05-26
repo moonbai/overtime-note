@@ -144,7 +144,7 @@ object HolidayManager {
                             if (item != null) {
                                 val date = item.optString("date", "")
                                 val name = item.optString("name", "")
-                                val detailsType = item.optInt("type", 0) 
+                                val detailsType = item.optInt("detailsType", 0) 
                                 val isHoliday = detailsType == 1 || detailsType == 2 || detailsType == 3
                                 val type = detailsType
                                 val info = HolidayInfo(
