@@ -69,10 +69,7 @@ fun AboutPage(
             Box(
                 modifier = Modifier
                     .size(100.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(
-                        MaterialTheme.colorScheme.primaryContainer
-                    ),
+                    .clip(RoundedCornerShape(24.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 appIcon?.let { bitmap ->

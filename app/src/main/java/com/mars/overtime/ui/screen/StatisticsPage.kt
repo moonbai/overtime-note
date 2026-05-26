@@ -307,7 +307,6 @@ fun StatItem(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .weight(1f)
             .padding(horizontal = 8.dp)
     ) {
         Text(

@@ -313,13 +313,14 @@ fun BottomNavigationBar(
             label = if (bottomBarStyle != BottomBarStyle.ICON_ONLY) {
                 { Text(if (quickReportMode) "提报" else "首页") }
             } else null,
-            colors = NavigationBarItemDefaults.colors(
-                indicatorColor = if (quickReportMode) {
-                    MaterialTheme.colorScheme.primaryContainer
-                } else {
-                    NavigationBarItemDefaults.colors().indicatorColor
-                }
-            )
+            colors = if (quickReportMode) {
+                NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            } else {
+                NavigationBarItemDefaults.colors()
+            }
         )
 
         NavigationBarItem(
