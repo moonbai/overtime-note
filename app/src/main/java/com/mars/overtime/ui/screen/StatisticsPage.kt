@@ -60,19 +60,19 @@ fun StatisticsPage(
     
     val hourlyRate = if (baseSalary > 0) baseSalary / 21.75 / 8 else 0.0
     
-    val totalHours = records.sumOf { it.hours }
-    val weekdayRecords = records.filter { it.type == OvertimeType.WEEKDAY.name }
-    val weekendRecords = records.filter { it.type == OvertimeType.WEEKEND.name }
-    val holidayRecords = records.filter { it.type == OvertimeType.HOLIDAY.name }
+    val totalHours = records.sumOf { it.duration }
+    val workdayRecords = records.filter { it.type == OvertimeType.WORKDAY }
+    val restdayRecords = records.filter { it.type == OvertimeType.RESTDAY }
+    val holidayRecords = records.filter { it.type == OvertimeType.HOLIDAY }
     
-    val weekdayHours = weekdayRecords.sumOf { it.hours }
-    val weekendHours = weekendRecords.sumOf { it.hours }
-    val holidayHours = holidayRecords.sumOf { it.hours }
+    val workdayHours = workdayRecords.sumOf { it.duration }
+    val restdayHours = restdayRecords.sumOf { it.duration }
+    val holidayHours = holidayRecords.sumOf { it.duration }
     
-    val weekdaySalary = weekdayHours * hourlyRate * workdayRate
-    val weekendSalary = weekendHours * hourlyRate * restdayRate
+    val workdaySalary = workdayHours * hourlyRate * workdayRate
+    val restdaySalary = restdayHours * hourlyRate * restdayRate
     val holidaySalary = holidayHours * hourlyRate * holidayRate
-    val totalSalary = weekdaySalary + weekendSalary + holidaySalary
+    val totalSalary = workdaySalary + restdaySalary + holidaySalary
     
     Scaffold(
         topBar = {
@@ -175,14 +175,14 @@ fun StatisticsPage(
                         ) {
                             StatItem(
                                 title = "工作日",
-                                hours = weekdayHours,
-                                salary = weekdaySalary,
+                                hours = workdayHours,
+                                salary = workdaySalary,
                                 color = MaterialTheme.colorScheme.primary
                             )
                             StatItem(
                                 title = "休息日",
-                                hours = weekendHours,
-                                salary = weekendSalary,
+                                hours = restdayHours,
+                                salary = restdaySalary,
                                 color = MaterialTheme.colorScheme.secondary
                             )
                             StatItem(
@@ -240,17 +240,15 @@ fun StatisticsPage(
                                 )
                                 Text(
                                     text = when (record.type) {
-                                        OvertimeType.WEEKDAY.name -> "工作日"
-                                        OvertimeType.WEEKEND.name -> "休息日"
-                                        OvertimeType.HOLIDAY.name -> "节假日"
-                                        else -> "其他"
+                                        OvertimeType.WORKDAY -> "工作日"
+                                        OvertimeType.RESTDAY -> "休息日"
+                                        OvertimeType.HOLIDAY -> "节假日"
                                     },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = when (record.type) {
-                                        OvertimeType.WEEKDAY.name -> MaterialTheme.colorScheme.primary
-                                        OvertimeType.WEEKEND.name -> MaterialTheme.colorScheme.secondary
-                                        OvertimeType.HOLIDAY.name -> Color(0xFFFF5722)
-                                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                        OvertimeType.WORKDAY -> MaterialTheme.colorScheme.primary
+                                        OvertimeType.RESTDAY -> MaterialTheme.colorScheme.secondary
+                                        OvertimeType.HOLIDAY -> Color(0xFFFF5722)
                                     }
                                 )
                             }
@@ -261,7 +259,7 @@ fun StatisticsPage(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "${record.hours} 小时",
+                                    text = "${record.duration} 小时",
                                     style = MaterialTheme.typography.bodyLarge,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -271,10 +269,10 @@ fun StatisticsPage(
                                     color = MaterialTheme.colorScheme.secondary
                                 )
                             }
-                            if (!record.note.isNullOrEmpty()) {
+                            if (record.remark.isNotEmpty()) {
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = record.note!!,
+                                    text = record.remark,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -332,9 +330,8 @@ private fun calculateSalary(
     holidayRate: Double
 ): Double {
     return when (record.type) {
-        OvertimeType.WEEKDAY.name -> record.hours * hourlyRate * workdayRate
-        OvertimeType.WEEKEND.name -> record.hours * hourlyRate * restdayRate
-        OvertimeType.HOLIDAY.name -> record.hours * hourlyRate * holidayRate
-        else -> record.hours * hourlyRate
+        OvertimeType.WORKDAY -> record.duration * hourlyRate * workdayRate
+        OvertimeType.RESTDAY -> record.duration * hourlyRate * restdayRate
+        OvertimeType.HOLIDAY -> record.duration * hourlyRate * holidayRate
     }
 }
