@@ -170,7 +170,7 @@ fun AboutPage(
             Spacer(modifier = Modifier.height(40.dp))
 
             Text(
-                text = "© 2024 Mars",
+                text = "© 2026 Mars",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

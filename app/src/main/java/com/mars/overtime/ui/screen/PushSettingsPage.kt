@@ -28,20 +28,33 @@ fun PushSettingsPage(
 ) {
     val db = OvertimeApplication.database
     val configDao = db.configDao()
-    val overtimeDao = db.overtimeDao()
 
     val scope = rememberCoroutineScope()
 
     val allConfigs by configDao.getAllConfigs().collectAsState(initial = emptyList())
 
     var pushEnabled by remember { mutableStateOf(allConfigs.find { it.key == "push_enabled" }?.value?.toBoolean() ?: false) }
+
+    // 渠道配置
     var dingtalkUrl by remember { mutableStateOf(allConfigs.find { it.key == "push_dingtalk" }?.value ?: "") }
+    var dingtalkSecret by remember { mutableStateOf(allConfigs.find { it.key == "push_dingtalk_secret" }?.value ?: "") }
     var feishuUrl by remember { mutableStateOf(allConfigs.find { it.key == "push_feishu" }?.value ?: "") }
-    var wxPusherUrl by remember { mutableStateOf(allConfigs.find { it.key == "push_wxpusher" }?.value ?: "") }
-    var customUrl by remember { mutableStateOf(allConfigs.find { it.key == "push_custom" }?.value ?: "") }
-    var telegramUrl by remember { mutableStateOf(allConfigs.find { it.key == "push_telegram" }?.value ?: "") }
-    var discordUrl by remember { mutableStateOf(allConfigs.find { it.key == "push_discord" }?.value ?: "") }
+    var feishuSecret by remember { mutableStateOf(allConfigs.find { it.key == "push_feishu_secret" }?.value ?: "") }
     var wecomUrl by remember { mutableStateOf(allConfigs.find { it.key == "push_wecom" }?.value ?: "") }
+    var wecomSecret by remember { mutableStateOf(allConfigs.find { it.key == "push_wecom_secret" }?.value ?: "") }
+    var wxPusherUrl by remember { mutableStateOf(allConfigs.find { it.key == "push_wxpusher" }?.value ?: "") }
+    var wxPusherToken by remember { mutableStateOf(allConfigs.find { it.key == "push_wxpusher_token" }?.value ?: "") }
+    var telegramUrl by remember { mutableStateOf(allConfigs.find { it.key == "push_telegram" }?.value ?: "") }
+    var telegramChatId by remember { mutableStateOf(allConfigs.find { it.key == "push_telegram_chatid" }?.value ?: "") }
+    var discordUrl by remember { mutableStateOf(allConfigs.find { it.key == "push_discord" }?.value ?: "") }
+    var discordUsername by remember { mutableStateOf(allConfigs.find { it.key == "push_discord_username" }?.value ?: "") }
+    var customUrl by remember { mutableStateOf(allConfigs.find { it.key == "push_custom" }?.value ?: "") }
+    var customHeaders by remember { mutableStateOf(allConfigs.find { it.key == "push_custom_headers" }?.value ?: "") }
+
+    // 下拉选择
+    val channels = listOf("钉钉", "飞书", "企业微信", "WxPusher", "Telegram", "Discord", "自定义推送")
+    var selectedChannel by remember { mutableStateOf(channels.first()) }
+    var channelExpanded by remember { mutableStateOf(false) }
 
     var pushResult by remember { mutableStateOf("") }
     var showResultDialog by remember { mutableStateOf(false) }
@@ -51,12 +64,19 @@ fun PushSettingsPage(
     LaunchedEffect(allConfigs) {
         pushEnabled = allConfigs.find { it.key == "push_enabled" }?.value?.toBoolean() ?: false
         dingtalkUrl = allConfigs.find { it.key == "push_dingtalk" }?.value ?: ""
+        dingtalkSecret = allConfigs.find { it.key == "push_dingtalk_secret" }?.value ?: ""
         feishuUrl = allConfigs.find { it.key == "push_feishu" }?.value ?: ""
-        wxPusherUrl = allConfigs.find { it.key == "push_wxpusher" }?.value ?: ""
-        customUrl = allConfigs.find { it.key == "push_custom" }?.value ?: ""
-        telegramUrl = allConfigs.find { it.key == "push_telegram" }?.value ?: ""
-        discordUrl = allConfigs.find { it.key == "push_discord" }?.value ?: ""
+        feishuSecret = allConfigs.find { it.key == "push_feishu_secret" }?.value ?: ""
         wecomUrl = allConfigs.find { it.key == "push_wecom" }?.value ?: ""
+        wecomSecret = allConfigs.find { it.key == "push_wecom_secret" }?.value ?: ""
+        wxPusherUrl = allConfigs.find { it.key == "push_wxpusher" }?.value ?: ""
+        wxPusherToken = allConfigs.find { it.key == "push_wxpusher_token" }?.value ?: ""
+        telegramUrl = allConfigs.find { it.key == "push_telegram" }?.value ?: ""
+        telegramChatId = allConfigs.find { it.key == "push_telegram_chatid" }?.value ?: ""
+        discordUrl = allConfigs.find { it.key == "push_discord" }?.value ?: ""
+        discordUsername = allConfigs.find { it.key == "push_discord_username" }?.value ?: ""
+        customUrl = allConfigs.find { it.key == "push_custom" }?.value ?: ""
+        customHeaders = allConfigs.find { it.key == "push_custom_headers" }?.value ?: ""
     }
 
     Scaffold(
@@ -72,20 +92,20 @@ fun PushSettingsPage(
                     IconButton(onClick = {
                         helpContent = """
                             各推送渠道说明：
-                            
-                            1. 钉钉机器人：在钉钉群中添加自定义机器人，获取Webhook地址
-                            
-                            2. 飞书机器人：在飞书群中添加自定义机器人，获取Webhook地址
-                            
-                            3. 企业微信：在企业微信群中添加群机器人，获取Webhook地址
-                            
-                            4. WxPusher：访问 https://wxpusher.zjiecode.com/ 获取
-                            
-                            5. Telegram：创建Bot并获取Token，填入格式：https://api.telegram.org/bot{token}/sendMessage
-                            
-                            6. Discord：在Discord服务器中创建Webhook，获取地址
-                            
-                            7. 自定义推送：填写您自己的API接口地址，将以POST方式发送JSON数据
+
+                            1. 钉钉机器人：在钉钉群中添加自定义机器人，获取Webhook地址。支持加签密钥验证。
+
+                            2. 飞书机器人：在飞书群中添加自定义机器人，获取Webhook地址。支持签名密钥验证。
+
+                            3. 企业微信：在企业微信群中添加群机器人，获取Webhook地址。支持加签密钥验证。
+
+                            4. WxPusher：访问 https://wxpusher.zjiecode.com/ 获取。可选填写App Token。
+
+                            5. Telegram：创建Bot并获取Token，填入格式：https://api.telegram.org/bot{token}/sendMessage。需填写Chat ID。
+
+                            6. Discord：在Discord服务器中创建Webhook，获取地址。可选填写用户名。
+
+                            7. 自定义推送：填写您自己的API接口地址，将以POST方式发送JSON数据。可选填写自定义请求头。
                         """.trimIndent()
                         showHelpDialog = true
                     }) {
@@ -105,6 +125,7 @@ fun PushSettingsPage(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+            // 1. 总开关
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -139,117 +160,204 @@ fun PushSettingsPage(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
             if (pushEnabled) {
-                Text("推送渠道", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 2. 下拉选择渠道
+                Text("选择渠道", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // 钉钉
-                ChannelCard(
-                    name = "钉钉",
-                    description = "钉钉群机器人推送",
-                    url = dingtalkUrl,
-                    placeholder = "https://oapi.dingtalk.com/robot/send?access_token=xxx",
-                    onUrlChange = { dingtalkUrl = it }
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // 飞书
-                ChannelCard(
-                    name = "飞书",
-                    description = "飞书群机器人推送",
-                    url = feishuUrl,
-                    placeholder = "https://open.feishu.cn/open-apis/bot/v2/hook/xxx",
-                    onUrlChange = { feishuUrl = it }
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // 企业微信
-                ChannelCard(
-                    name = "企业微信",
-                    description = "企业微信群机器人推送",
-                    url = wecomUrl,
-                    placeholder = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxx",
-                    onUrlChange = { wecomUrl = it }
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // WxPusher
-                ChannelCard(
-                    name = "WxPusher",
-                    description = "微信消息推送服务",
-                    url = wxPusherUrl,
-                    placeholder = "https://wxpusher.zjiecode.com/api/v1/send/xxx",
-                    onUrlChange = { wxPusherUrl = it }
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Telegram
-                ChannelCard(
-                    name = "Telegram",
-                    description = "Telegram机器人推送",
-                    url = telegramUrl,
-                    placeholder = "https://api.telegram.org/bot{token}/sendMessage",
-                    onUrlChange = { telegramUrl = it }
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Discord
-                ChannelCard(
-                    name = "Discord",
-                    description = "Discord Webhook推送",
-                    url = discordUrl,
-                    placeholder = "https://discord.com/api/webhooks/xxx/xxx",
-                    onUrlChange = { discordUrl = it }
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // 自定义推送
-                ChannelCard(
-                    name = "自定义推送",
-                    description = "自定义API接口推送",
-                    url = customUrl,
-                    placeholder = "https://your-server.com/api/push",
-                    onUrlChange = { customUrl = it }
-                )
+                ExposedDropdownMenuBox(
+                    expanded = channelExpanded,
+                    onExpandedChange = { channelExpanded = it }
+                ) {
+                    OutlinedTextField(
+                        value = selectedChannel,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("推送渠道") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(channelExpanded)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = channelExpanded,
+                        onDismissRequest = { channelExpanded = false }
+                    ) {
+                        channels.forEach { channel ->
+                            DropdownMenuItem(
+                                text = { Text(channel) },
+                                onClick = {
+                                    selectedChannel = channel
+                                    channelExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Button(
-                    onClick = {
-                        scope.launch {
-                            configDao.saveConfigs(
-                                listOf(
-                                    AppConfig("push_enabled", pushEnabled.toString()),
-                                    AppConfig("push_dingtalk", dingtalkUrl),
-                                    AppConfig("push_feishu", feishuUrl),
-                                    AppConfig("push_wecom", wecomUrl),
-                                    AppConfig("push_wxpusher", wxPusherUrl),
-                                    AppConfig("push_telegram", telegramUrl),
-                                    AppConfig("push_discord", discordUrl),
-                                    AppConfig("push_custom", customUrl)
-                                )
-                            )
-                            pushResult = "配置已保存"
-                            showResultDialog = true
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
+                // 3. 渠道配置信息
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
                 ) {
-                    Text("保存配置", style = MaterialTheme.typography.titleMedium)
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "${selectedChannel}配置",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        when (selectedChannel) {
+                            "钉钉" -> {
+                                OutlinedTextField(
+                                    value = dingtalkUrl,
+                                    onValueChange = { dingtalkUrl = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text("Webhook URL") },
+                                    placeholder = { Text("https://oapi.dingtalk.com/robot/send?access_token=xxx") },
+                                    singleLine = true
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                OutlinedTextField(
+                                    value = dingtalkSecret,
+                                    onValueChange = { dingtalkSecret = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text("加签密钥（可选）") },
+                                    placeholder = { Text("SEC...") },
+                                    singleLine = true
+                                )
+                            }
+                            "飞书" -> {
+                                OutlinedTextField(
+                                    value = feishuUrl,
+                                    onValueChange = { feishuUrl = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text("Webhook URL") },
+                                    placeholder = { Text("https://open.feishu.cn/open-apis/bot/v2/hook/xxx") },
+                                    singleLine = true
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                OutlinedTextField(
+                                    value = feishuSecret,
+                                    onValueChange = { feishuSecret = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text("签名密钥（可选）") },
+                                    placeholder = { Text("签名密钥") },
+                                    singleLine = true
+                                )
+                            }
+                            "企业微信" -> {
+                                OutlinedTextField(
+                                    value = wecomUrl,
+                                    onValueChange = { wecomUrl = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text("Webhook URL") },
+                                    placeholder = { Text("https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxx") },
+                                    singleLine = true
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                OutlinedTextField(
+                                    value = wecomSecret,
+                                    onValueChange = { wecomSecret = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text("加签密钥（可选）") },
+                                    placeholder = { Text("加签密钥") },
+                                    singleLine = true
+                                )
+                            }
+                            "WxPusher" -> {
+                                OutlinedTextField(
+                                    value = wxPusherUrl,
+                                    onValueChange = { wxPusherUrl = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text("Webhook URL") },
+                                    placeholder = { Text("https://wxpusher.zjiecode.com/api/v1/send/xxx") },
+                                    singleLine = true
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                OutlinedTextField(
+                                    value = wxPusherToken,
+                                    onValueChange = { wxPusherToken = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text("App Token（可选）") },
+                                    placeholder = { Text("AT_xxx") },
+                                    singleLine = true
+                                )
+                            }
+                            "Telegram" -> {
+                                OutlinedTextField(
+                                    value = telegramUrl,
+                                    onValueChange = { telegramUrl = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text("Bot API URL") },
+                                    placeholder = { Text("https://api.telegram.org/bot{token}/sendMessage") },
+                                    singleLine = true
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                OutlinedTextField(
+                                    value = telegramChatId,
+                                    onValueChange = { telegramChatId = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text("Chat ID（必填）") },
+                                    placeholder = { Text("123456789") },
+                                    singleLine = true
+                                )
+                            }
+                            "Discord" -> {
+                                OutlinedTextField(
+                                    value = discordUrl,
+                                    onValueChange = { discordUrl = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text("Webhook URL") },
+                                    placeholder = { Text("https://discord.com/api/webhooks/xxx/xxx") },
+                                    singleLine = true
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                OutlinedTextField(
+                                    value = discordUsername,
+                                    onValueChange = { discordUsername = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text("用户名（可选）") },
+                                    placeholder = { Text("自定义推送用户名") },
+                                    singleLine = true
+                                )
+                            }
+                            "自定义推送" -> {
+                                OutlinedTextField(
+                                    value = customUrl,
+                                    onValueChange = { customUrl = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text("API URL") },
+                                    placeholder = { Text("https://your-server.com/api/push") },
+                                    singleLine = true
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                OutlinedTextField(
+                                    value = customHeaders,
+                                    onValueChange = { customHeaders = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text("请求头（可选）") },
+                                    placeholder = { Text("Authorization: Bearer xxx\nContent-Type: application/json") },
+                                    minLines = 3,
+                                    maxLines = 5
+                                )
+                            }
+                        }
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
+                // 4. 测试按钮
                 OutlinedButton(
                     onClick = {
                         scope.launch {
@@ -266,38 +374,69 @@ fun PushSettingsPage(
                                 createTime = System.currentTimeMillis()
                             )
 
-                            val results = mutableListOf<String>()
+                            val result = when (selectedChannel) {
+                                "钉钉" -> {
+                                    if (dingtalkUrl.isBlank()) {
+                                        "请先填写 Webhook URL"
+                                    } else {
+                                        val success = PushManager.sendDingTalk(dingtalkUrl, dingtalkSecret, testRecord)
+                                        "钉钉推送: ${if (success) "成功" else "失败"}"
+                                    }
+                                }
+                                "飞书" -> {
+                                    if (feishuUrl.isBlank()) {
+                                        "请先填写 Webhook URL"
+                                    } else {
+                                        val success = PushManager.sendFeishu(feishuUrl, feishuSecret, testRecord)
+                                        "飞书推送: ${if (success) "成功" else "失败"}"
+                                    }
+                                }
+                                "企业微信" -> {
+                                    if (wecomUrl.isBlank()) {
+                                        "请先填写 Webhook URL"
+                                    } else {
+                                        val success = PushManager.sendWeCom(wecomUrl, wecomSecret, testRecord)
+                                        "企业微信推送: ${if (success) "成功" else "失败"}"
+                                    }
+                                }
+                                "WxPusher" -> {
+                                    if (wxPusherUrl.isBlank()) {
+                                        "请先填写 Webhook URL"
+                                    } else {
+                                        val success = PushManager.sendWxPusher(wxPusherUrl, testRecord)
+                                        "WxPusher推送: ${if (success) "成功" else "失败"}"
+                                    }
+                                }
+                                "Telegram" -> {
+                                    if (telegramUrl.isBlank()) {
+                                        "请先填写 Bot API URL"
+                                    } else if (telegramChatId.isBlank()) {
+                                        "请先填写 Chat ID"
+                                    } else {
+                                        val success = PushManager.sendTelegram(telegramUrl, telegramChatId, testRecord)
+                                        "Telegram推送: ${if (success) "成功" else "失败"}"
+                                    }
+                                }
+                                "Discord" -> {
+                                    if (discordUrl.isBlank()) {
+                                        "请先填写 Webhook URL"
+                                    } else {
+                                        val success = PushManager.sendDiscord(discordUrl, discordUsername, testRecord)
+                                        "Discord推送: ${if (success) "成功" else "失败"}"
+                                    }
+                                }
+                                "自定义推送" -> {
+                                    if (customUrl.isBlank()) {
+                                        "请先填写 API URL"
+                                    } else {
+                                        val success = PushManager.sendCustom(customUrl, customHeaders, testRecord)
+                                        "自定义推送: ${if (success) "成功" else "失败"}"
+                                    }
+                                }
+                                else -> "未知渠道"
+                            }
 
-                            if (dingtalkUrl.isNotBlank()) {
-                                val success = PushManager.sendDingTalk(dingtalkUrl, testRecord)
-                                results.add("钉钉: ${if (success) "成功" else "失败"}")
-                            }
-                            if (feishuUrl.isNotBlank()) {
-                                val success = PushManager.sendFeishu(feishuUrl, testRecord)
-                                results.add("飞书: ${if (success) "成功" else "失败"}")
-                            }
-                            if (wecomUrl.isNotBlank()) {
-                                val success = PushManager.sendWeCom(wecomUrl, testRecord)
-                                results.add("企业微信: ${if (success) "成功" else "失败"}")
-                            }
-                            if (wxPusherUrl.isNotBlank()) {
-                                val success = PushManager.sendWxPusher(wxPusherUrl, testRecord)
-                                results.add("WxPusher: ${if (success) "成功" else "失败"}")
-                            }
-                            if (telegramUrl.isNotBlank()) {
-                                val success = PushManager.sendTelegram(telegramUrl, testRecord)
-                                results.add("Telegram: ${if (success) "成功" else "失败"}")
-                            }
-                            if (discordUrl.isNotBlank()) {
-                                val success = PushManager.sendDiscord(discordUrl, testRecord)
-                                results.add("Discord: ${if (success) "成功" else "失败"}")
-                            }
-                            if (customUrl.isNotBlank()) {
-                                val success = PushManager.sendCustom(customUrl, testRecord)
-                                results.add("自定义: ${if (success) "成功" else "失败"}")
-                            }
-
-                            pushResult = if (results.isEmpty()) "未配置任何推送渠道" else results.joinToString("\n")
+                            pushResult = result
                             showResultDialog = true
                         }
                     },
@@ -307,7 +446,44 @@ fun PushSettingsPage(
                 ) {
                     Text("测试推送", style = MaterialTheme.typography.titleMedium)
                 }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // 5. 保存按钮
+                Button(
+                    onClick = {
+                        scope.launch {
+                            configDao.saveConfigs(
+                                listOf(
+                                    AppConfig("push_enabled", pushEnabled.toString()),
+                                    AppConfig("push_dingtalk", dingtalkUrl),
+                                    AppConfig("push_dingtalk_secret", dingtalkSecret),
+                                    AppConfig("push_feishu", feishuUrl),
+                                    AppConfig("push_feishu_secret", feishuSecret),
+                                    AppConfig("push_wecom", wecomUrl),
+                                    AppConfig("push_wecom_secret", wecomSecret),
+                                    AppConfig("push_wxpusher", wxPusherUrl),
+                                    AppConfig("push_wxpusher_token", wxPusherToken),
+                                    AppConfig("push_telegram", telegramUrl),
+                                    AppConfig("push_telegram_chatid", telegramChatId),
+                                    AppConfig("push_discord", discordUrl),
+                                    AppConfig("push_discord_username", discordUsername),
+                                    AppConfig("push_custom", customUrl),
+                                    AppConfig("push_custom_headers", customHeaders)
+                                )
+                            )
+                            pushResult = "配置已保存"
+                            showResultDialog = true
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                ) {
+                    Text("保存配置", style = MaterialTheme.typography.titleMedium)
+                }
             } else {
+                Spacer(modifier = Modifier.height(24.dp))
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -344,62 +520,5 @@ fun PushSettingsPage(
                 TextButton(onClick = { showHelpDialog = false }) { Text("确定") }
             }
         )
-    }
-}
-
-@Composable
-fun ChannelCard(
-    name: String,
-    description: String,
-    url: String,
-    placeholder: String,
-    onUrlChange: (String) -> Unit
-) {
-    var expanded by remember { mutableStateOf(url.isNotBlank()) }
-    
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Switch(
-                    checked = url.isNotBlank(),
-                    onCheckedChange = { checked ->
-                        if (!checked) {
-                            onUrlChange("")
-                            expanded = false
-                        } else {
-                            expanded = true
-                        }
-                    }
-                )
-            }
-            if (url.isNotBlank() || expanded) {
-                Spacer(modifier = Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = url,
-                    onValueChange = onUrlChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(placeholder) },
-                    singleLine = true
-                )
-            }
-        }
     }
 }

@@ -61,6 +61,8 @@ fun AddEditRecordPage(
     var selectedEndTime by remember { mutableStateOf(defaultEndTime) }
     var duration by remember { mutableStateOf(3.0) }
     var selectedType by remember { mutableStateOf(OvertimeType.WORKDAY) }
+    var isLeave by remember { mutableStateOf(false) }
+    var selectedLeaveType by remember { mutableStateOf(OvertimeType.LEAVE_HALF) }
     var remark by remember { mutableStateOf("") }
     var money by remember { mutableStateOf(0.0) }
     var holidayInfo by remember { mutableStateOf<String?>(null) }
@@ -76,7 +78,10 @@ fun AddEditRecordPage(
         scope.launch {
             try {
                 val holidayInfoResult = HolidayManager.getOvertimeType(dateStr)
-                selectedType = holidayInfoResult
+                // 只用于自动选择加班类型，不影响请假开关
+                if (holidayInfoResult != OvertimeType.LEAVE_HALF && holidayInfoResult != OvertimeType.LEAVE_FULL) {
+                    selectedType = holidayInfoResult
+                }
                 holidayInfo = when (holidayInfoResult) {
                     OvertimeType.WORKDAY -> "工作日"
                     OvertimeType.RESTDAY -> "休息日"
@@ -98,9 +103,9 @@ fun AddEditRecordPage(
         updateOvertimeType(selectedDate)
     }
 
-    LaunchedEffect(selectedStartTime, selectedEndTime, selectedType, allConfigs) {
+    LaunchedEffect(selectedStartTime, selectedEndTime, selectedType, isLeave, allConfigs) {
         duration = SalaryCalculator.calculateDuration(selectedStartTime, selectedEndTime)
-        money = SalaryCalculator.calculateMoneyWithConfig(allConfigs, selectedType, duration)
+        money = if (isLeave) 0.0 else SalaryCalculator.calculateMoneyWithConfig(allConfigs, selectedType, duration)
     }
 
     fun parseDateToLocalCalendar(dateStr: String): Calendar {
@@ -207,7 +212,7 @@ fun AddEditRecordPage(
             Text("加班类型:", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OvertimeType.values().forEach { type ->
+                listOf(OvertimeType.WORKDAY, OvertimeType.RESTDAY, OvertimeType.HOLIDAY).forEach { type ->
                     FilterChip(
                         selected = selectedType == type,
                         onClick = { selectedType = type },
@@ -217,8 +222,7 @@ fun AddEditRecordPage(
                                     OvertimeType.WORKDAY -> "工作日"
                                     OvertimeType.RESTDAY -> "休息日"
                                     OvertimeType.HOLIDAY -> "法定节假日"
-                                    OvertimeType.LEAVE_HALF -> "请假(半天)"
-                                    OvertimeType.LEAVE_FULL -> "请假(全天)"
+                                    else -> ""
                                 }
                             )
                         }
@@ -227,7 +231,39 @@ fun AddEditRecordPage(
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("预计金额: ¥${"%.2f".format(money)}", style = MaterialTheme.typography.titleMedium)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("是否请假", style = MaterialTheme.typography.titleMedium)
+                Switch(
+                    checked = isLeave,
+                    onCheckedChange = { isLeave = it }
+                )
+            }
+            if (isLeave) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(
+                        selected = selectedLeaveType == OvertimeType.LEAVE_HALF,
+                        onClick = { selectedLeaveType = OvertimeType.LEAVE_HALF },
+                        label = { Text("请假(半天)") }
+                    )
+                    FilterChip(
+                        selected = selectedLeaveType == OvertimeType.LEAVE_FULL,
+                        onClick = { selectedLeaveType = OvertimeType.LEAVE_FULL },
+                        label = { Text("请假(全天)") }
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (isLeave) {
+                Text("请假不计薪", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.error)
+            } else {
+                Text("预计金额: ¥${"%.2f".format(money)}", style = MaterialTheme.typography.titleMedium)
+            }
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
@@ -248,8 +284,8 @@ fun AddEditRecordPage(
                             startTime = selectedStartTime,
                             endTime = selectedEndTime,
                             duration = duration,
-                            type = selectedType,
-                            money = money,
+                            type = if (isLeave) selectedLeaveType else selectedType,
+                            money = if (isLeave) 0.0 else money,
                             remark = remark,
                             createTime = System.currentTimeMillis()
                         )
@@ -257,22 +293,40 @@ fun AddEditRecordPage(
 
                         val configs = configDao.getAllConfigsOnce()
                         val dingUrl = configs.find { it.key == "push_dingtalk" }?.value
+                        val dingSecret = configs.find { it.key == "push_dingtalk_secret" }?.value ?: ""
                         val feishuUrl = configs.find { it.key == "push_feishu" }?.value
+                        val feishuSecret = configs.find { it.key == "push_feishu_secret" }?.value ?: ""
+                        val wecomUrl = configs.find { it.key == "push_wecom" }?.value
+                        val wecomSecret = configs.find { it.key == "push_wecom_secret" }?.value ?: ""
                         val wxUrl = configs.find { it.key == "push_wxpusher" }?.value
+                        val telegramUrl = configs.find { it.key == "push_telegram" }?.value
+                        val telegramChatId = configs.find { it.key == "push_telegram_chatid" }?.value ?: ""
+                        val discordUrl = configs.find { it.key == "push_discord" }?.value
+                        val discordUsername = configs.find { it.key == "push_discord_username" }?.value ?: ""
                         val customUrl = configs.find { it.key == "push_custom" }?.value
+                        val customHeaders = configs.find { it.key == "push_custom_headers" }?.value ?: ""
                         val calendarEnabled = configs.find { it.key == "calendar_enabled" }?.value == "true"
 
                         if (!dingUrl.isNullOrBlank()) {
-                            PushManager.sendDingTalk(dingUrl, record)
+                            PushManager.sendDingTalk(dingUrl, dingSecret, record)
                         }
                         if (!feishuUrl.isNullOrBlank()) {
-                            PushManager.sendFeishu(feishuUrl, record)
+                            PushManager.sendFeishu(feishuUrl, feishuSecret, record)
+                        }
+                        if (!wecomUrl.isNullOrBlank()) {
+                            PushManager.sendWeCom(wecomUrl, wecomSecret, record)
                         }
                         if (!wxUrl.isNullOrBlank()) {
                             PushManager.sendWxPusher(wxUrl, record)
                         }
+                        if (!telegramUrl.isNullOrBlank() && telegramChatId.isNotBlank()) {
+                            PushManager.sendTelegram(telegramUrl, telegramChatId, record)
+                        }
+                        if (!discordUrl.isNullOrBlank()) {
+                            PushManager.sendDiscord(discordUrl, discordUsername, record)
+                        }
                         if (!customUrl.isNullOrBlank()) {
-                            PushManager.sendCustom(customUrl, record)
+                            PushManager.sendCustom(customUrl, customHeaders, record)
                         }
                         
                         if (calendarEnabled) {

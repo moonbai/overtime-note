@@ -1,5 +1,6 @@
 package com.mars.overtime.push
 
+import android.util.Base64
 import android.util.Log
 import com.mars.overtime.database.OvertimeRecord
 import com.mars.overtime.database.OvertimeType
@@ -8,6 +9,11 @@ import kotlinx.coroutines.withContext
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+import java.util.*
+import javax.crypto.Mac
+import javax.crypto.spec.SecretKeySpec
 
 object PushManager {
     private val client = OkHttpClient.Builder()
@@ -33,13 +39,36 @@ object PushManager {
 事由: $reason""".trimIndent()
     }
 
-    suspend fun sendDingTalk(url: String, record: OvertimeRecord): Boolean = withContext(Dispatchers.IO) {
+    /**
+     * 生成 HMAC-SHA256 签名
+     */
+    private fun hmacSha256(secret: String, data: String): String {
+        val mac = Mac.getInstance("HmacSHA256")
+        val secretKeySpec = SecretKeySpec(secret.toByteArray(StandardCharsets.UTF_8), "HmacSHA256")
+        mac.init(secretKeySpec)
+        val signData = mac.doFinal(data.toByteArray(StandardCharsets.UTF_8))
+        return Base64.encodeToString(signData, Base64.NO_WRAP)
+    }
+
+    suspend fun sendDingTalk(url: String, secret: String, record: OvertimeRecord): Boolean = withContext(Dispatchers.IO) {
         val text = buildText(record)
         val json = """{"msgtype":"text","text":{"content":"${escapeJson(text)}"}}"""
         try {
             val body = json.toRequestBody(mediaType)
+            val finalUrl = if (secret.isNotBlank()) {
+                val timestamp = System.currentTimeMillis().toString()
+                val stringToSign = "$timestamp\n$secret"
+                val sign = URLEncoder.encode(hmacSha256(secret, stringToSign), "UTF-8")
+                if (url.contains("?")) {
+                    "${url}&timestamp=$timestamp&sign=$sign"
+                } else {
+                    "$url?timestamp=$timestamp&sign=$sign"
+                }
+            } else {
+                url
+            }
             val req = Request.Builder()
-                .url(url)
+                .url(finalUrl)
                 .post(body)
                 .header("Content-Type", "application/json; charset=utf-8")
                 .build()
@@ -54,11 +83,18 @@ object PushManager {
         }
     }
 
-    suspend fun sendFeishu(url: String, record: OvertimeRecord): Boolean = withContext(Dispatchers.IO) {
+    suspend fun sendFeishu(url: String, secret: String, record: OvertimeRecord): Boolean = withContext(Dispatchers.IO) {
         val text = buildText(record)
-        
+
         if (url.contains("open.feishu.cn/open-apis/bot/v2/hook")) {
-            val json = """{"msg_type":"text","content":{"text":"${escapeJson(text)}"}}"""
+            val json = if (secret.isNotBlank()) {
+                val timestamp = System.currentTimeMillis().toString()
+                val stringToSign = "$timestamp\n$secret"
+                val sign = hmacSha256(secret, stringToSign)
+                """{"msg_type":"text","content":{"text":"${escapeJson(text)}"},"timestamp":"$timestamp","sign":"$sign"}"""
+            } else {
+                """{"msg_type":"text","content":{"text":"${escapeJson(text)}"}}"""
+            }
             try {
                 val body = json.toRequestBody(mediaType)
                 val req = Request.Builder()
@@ -70,7 +106,7 @@ object PushManager {
                 val response = res.body?.string()
                 Log.d("PushManager", "飞书推送响应: $response")
                 res.close()
-                
+
                 if (response != null) {
                     val jsonResponse = try {
                         org.json.JSONObject(response)
@@ -94,9 +130,13 @@ object PushManager {
         }
     }
 
-    suspend fun sendWeCom(url: String, record: OvertimeRecord): Boolean = withContext(Dispatchers.IO) {
+    suspend fun sendWeCom(url: String, secret: String, record: OvertimeRecord): Boolean = withContext(Dispatchers.IO) {
         val text = buildText(record)
-        val json = """{"msgtype":"text","text":{"content":"${escapeJson(text)}"}}"""
+        val json = if (secret.isNotBlank()) {
+            """{"msgtype":"text","text":{"content":"${escapeJson(text)}"},"mentioned_list":["@all"]}"""
+        } else {
+            """{"msgtype":"text","text":{"content":"${escapeJson(text)}"}}"""
+        }
         try {
             val body = json.toRequestBody(mediaType)
             val req = Request.Builder()
@@ -136,9 +176,9 @@ object PushManager {
         }
     }
 
-    suspend fun sendTelegram(url: String, record: OvertimeRecord): Boolean = withContext(Dispatchers.IO) {
+    suspend fun sendTelegram(url: String, chatId: String, record: OvertimeRecord): Boolean = withContext(Dispatchers.IO) {
         val text = buildText(record)
-        val json = """{"chat_id":null,"text":"${escapeJson(text)}"}"""
+        val json = """{"chat_id":"${escapeJson(chatId)}","text":"${escapeJson(text)}"}"""
         try {
             val body = json.toRequestBody(mediaType)
             val req = Request.Builder()
@@ -157,9 +197,13 @@ object PushManager {
         }
     }
 
-    suspend fun sendDiscord(url: String, record: OvertimeRecord): Boolean = withContext(Dispatchers.IO) {
+    suspend fun sendDiscord(url: String, username: String, record: OvertimeRecord): Boolean = withContext(Dispatchers.IO) {
         val text = buildText(record)
-        val json = """{"content":"${escapeJson(text)}"}"""
+        val json = if (username.isNotBlank()) {
+            """{"content":"${escapeJson(text)}","username":"${escapeJson(username)}"}"""
+        } else {
+            """{"content":"${escapeJson(text)}"}"""
+        }
         try {
             val body = json.toRequestBody(mediaType)
             val req = Request.Builder()
@@ -177,14 +221,26 @@ object PushManager {
         }
     }
 
-    suspend fun sendCustom(url: String, record: OvertimeRecord): Boolean = withContext(Dispatchers.IO) {
+    suspend fun sendCustom(url: String, headers: String, record: OvertimeRecord): Boolean = withContext(Dispatchers.IO) {
         val text = buildText(record)
         try {
             val body = text.toRequestBody("text/plain; charset=utf-8".toMediaType())
-            val req = Request.Builder()
+            val reqBuilder = Request.Builder()
                 .url(url)
                 .post(body)
-                .build()
+            // 解析自定义请求头，每行格式：HeaderName: HeaderValue
+            if (headers.isNotBlank()) {
+                headers.lines().forEach { line ->
+                    val trimmed = line.trim()
+                    if (trimmed.contains(":")) {
+                        val parts = trimmed.split(":", limit = 2)
+                        if (parts.size == 2) {
+                            reqBuilder.header(parts[0].trim(), parts[1].trim())
+                        }
+                    }
+                }
+            }
+            val req = reqBuilder.build()
             val res = client.newCall(req).execute()
             Log.d("PushManager", "自定义推送响应: ${res.code}")
             res.close()

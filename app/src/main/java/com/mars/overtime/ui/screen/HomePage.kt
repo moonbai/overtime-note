@@ -37,13 +37,20 @@ fun HomePage(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("加班记") }
+                title = { Text("加班记") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onNavigateToAddEdit,
-                modifier = Modifier.size(64.dp)
+                modifier = Modifier.size(64.dp),
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                elevation = FloatingActionButtonDefaults.elevation(
+                    defaultElevation = 6.dp
+                )
             ) {
                 Icon(
                     Icons.Default.Add,
