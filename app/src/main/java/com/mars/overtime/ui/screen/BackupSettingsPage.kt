@@ -9,7 +9,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -44,7 +43,7 @@ fun BackupSettingsPage(
     var showFilePicker by remember { mutableStateOf(false) }
     var remoteFiles by remember { mutableStateOf<List<String>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
-    var webdavExpanded by remember { mutableStateOf(false) } // 云端备份默认折叠
+    var webdavConfigExpanded by remember { mutableStateOf(false) }
 
     val backupFiles = DataMigrationUtil.listBackupFiles(context)
 
@@ -208,22 +207,19 @@ fun BackupSettingsPage(
             HorizontalDivider()
             Spacer(modifier = Modifier.height(16.dp))
 
-            // WebDAV 云端备份标题（不折叠）
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("WebDAV 云端备份", style = MaterialTheme.typography.titleMedium)
-                TextButton(onClick = { webdavExpanded = !webdavExpanded }) {
-                    Text(if (webdavExpanded) "收起" else "展开")
+                TextButton(onClick = { webdavConfigExpanded = !webdavConfigExpanded }) {
+                    Text(if (webdavConfigExpanded) "收起" else "展开")
                 }
             }
+            Spacer(modifier = Modifier.height(16.dp))
             
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            // 配置信息（可折叠）
-            if (webdavExpanded) {
+            if (webdavConfigExpanded) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
@@ -308,53 +304,53 @@ fun BackupSettingsPage(
                         ) {
                             Text("测试连接")
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Button(
-                                onClick = {
-                                    scope.launch {
-                                        val filePath = DataMigrationUtil.getBackupFilePath(context)
-                                        val exportSuccess = BackupManager.exportData(records, allConfigs, filePath)
-                                        if (exportSuccess) {
-                                            val config = WebDavManager.WebDavConfig(
-                                                baseUrl = webdavUrl,
-                                                username = webdavUsername,
-                                                password = webdavPassword,
-                                                remotePath = webdavPath
-                                            )
-                                            val fileName = DataMigrationUtil.generateBackupFileName()
-                                            val uploadSuccess = WebDavManager.uploadFile(config, filePath, fileName)
-                                            operationResult = if (uploadSuccess) "WebDAV 上传成功！" else "WebDAV 上传失败"
-                                        } else {
-                                            operationResult = "本地备份失败"
-                                        }
-                                        showResultDialog = true
-                                    }
-                                },
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text("上传")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = {
+                        scope.launch {
+                            val filePath = DataMigrationUtil.getBackupFilePath(context)
+                            val exportSuccess = BackupManager.exportData(records, allConfigs, filePath)
+                            if (exportSuccess) {
+                                val config = WebDavManager.WebDavConfig(
+                                    baseUrl = webdavUrl,
+                                    username = webdavUsername,
+                                    password = webdavPassword,
+                                    remotePath = webdavPath
+                                )
+                                val fileName = DataMigrationUtil.generateBackupFileName()
+                                val uploadSuccess = WebDavManager.uploadFile(config, filePath, fileName)
+                                operationResult = if (uploadSuccess) "WebDAV 上传成功！" else "WebDAV 上传失败"
+                            } else {
+                                operationResult = "本地备份失败"
                             }
-
-                            Button(
-                                onClick = { loadRemoteFiles() },
-                                modifier = Modifier.weight(1f),
-                                enabled = !isLoading
-                            ) {
-                                if (isLoading) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(20.dp),
-                                        strokeWidth = 2.dp
-                                    )
-                                } else {
-                                    Text("下载")
-                                }
-                            }
+                            showResultDialog = true
                         }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("上传到 WebDAV")
+                }
+
+                Button(
+                    onClick = { loadRemoteFiles() },
+                    modifier = Modifier.weight(1f),
+                    enabled = !isLoading
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("从 WebDAV 导入")
                     }
                 }
             }

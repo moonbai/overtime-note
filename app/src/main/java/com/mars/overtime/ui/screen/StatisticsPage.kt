@@ -59,18 +59,14 @@ fun StatisticsPage() {
 
     val hourlyRate = if (baseSalary > 0) baseSalary / 21.75 / 8 else 0.0
 
+    val totalHours = records.sumOf { it.duration }
     val workdayRecords = records.filter { it.type == OvertimeType.WORKDAY }
     val restdayRecords = records.filter { it.type == OvertimeType.RESTDAY }
     val holidayRecords = records.filter { it.type == OvertimeType.HOLIDAY }
-    val leaveRecords = records.filter { it.type == OvertimeType.LEAVE_HALF || it.type == OvertimeType.LEAVE_FULL }
 
     val workdayHours = workdayRecords.sumOf { it.duration }
+    val restdayHours = restdayRecords.sumOf { it.duration }
     val holidayHours = holidayRecords.sumOf { it.duration }
-    // 请假时长直接从休息日时长中扣除
-    val leaveDeductHours = leaveRecords.sumOf { it.duration } // 负数，如-4、-8
-    val restdayHours = restdayRecords.sumOf { it.duration } + leaveDeductHours
-    // 总时长 = 工作日 + 休息日(含扣除) + 节假日
-    val totalHours = workdayHours + restdayHours + holidayHours
 
     val workdaySalary = workdayHours * hourlyRate * workdayRate
     val restdaySalary = restdayHours * hourlyRate * restdayRate
@@ -80,7 +76,15 @@ fun StatisticsPage() {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("统计") },
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("统计", style = MaterialTheme.typography.titleLarge)
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
@@ -91,7 +95,7 @@ fun StatisticsPage() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp)
+                .padding(16.dp)
         ) {
             item {
                 // 月份选择器
@@ -167,14 +171,6 @@ fun StatisticsPage() {
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                         )
-                        if (leaveDeductHours != 0.0) {
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = String.format("(含请假扣除 %.0f 小时)", leaveDeductHours),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error.copy(alpha = 0.8f)
-                            )
-                        }
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = String.format("¥%.2f", totalSalary),
@@ -182,14 +178,6 @@ fun StatisticsPage() {
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
-                        if (baseSalary == 0.0) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "请先在薪资设置中配置基础薪资",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
@@ -232,20 +220,6 @@ fun StatisticsPage() {
                                 salary = holidaySalary,
                                 color = Color(0xFFFF5722)
                             )
-                        }
-                        if (leaveDeductHours != 0.0) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = String.format("请假扣除: %.0f 小时", leaveDeductHours),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            }
                         }
                     }
                 }
@@ -301,16 +275,12 @@ fun StatisticsPage() {
                                         OvertimeType.WORKDAY -> "工作日"
                                         OvertimeType.RESTDAY -> "休息日"
                                         OvertimeType.HOLIDAY -> "节假日"
-                                        OvertimeType.LEAVE_HALF -> "请假(半天)"
-                                        OvertimeType.LEAVE_FULL -> "请假(全天)"
                                     },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = when (record.type) {
                                         OvertimeType.WORKDAY -> MaterialTheme.colorScheme.primary
                                         OvertimeType.RESTDAY -> MaterialTheme.colorScheme.secondary
                                         OvertimeType.HOLIDAY -> Color(0xFFFF5722)
-                                        OvertimeType.LEAVE_HALF -> Color(0xFF9C27B0)
-                                        OvertimeType.LEAVE_FULL -> Color(0xFF9C27B0)
                                     }
                                 )
                             }
@@ -321,27 +291,14 @@ fun StatisticsPage() {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = if (record.type == OvertimeType.LEAVE_HALF || record.type == OvertimeType.LEAVE_FULL)
-                                        String.format("%.0f 小时", record.duration)
-                                    else
-                                        "${record.duration} 小时",
+                                    text = "${record.duration} 小时",
                                     style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (record.type == OvertimeType.LEAVE_HALF || record.type == OvertimeType.LEAVE_FULL)
-                                        MaterialTheme.colorScheme.error
-                                    else
-                                        Color.Unspecified
+                                    fontWeight = FontWeight.Bold
                                 )
                                 Text(
-                                    text = if (record.type == OvertimeType.LEAVE_HALF || record.type == OvertimeType.LEAVE_FULL)
-                                        "扣除"
-                                    else
-                                        String.format("¥%.2f", calculateSalary(record, hourlyRate, workdayRate, restdayRate, holidayRate)),
+                                    text = String.format("¥%.2f", calculateSalary(record, hourlyRate, workdayRate, restdayRate, holidayRate)),
                                     style = MaterialTheme.typography.bodyLarge,
-                                    color = if (record.type == OvertimeType.LEAVE_HALF || record.type == OvertimeType.LEAVE_FULL)
-                                        MaterialTheme.colorScheme.error
-                                    else
-                                        MaterialTheme.colorScheme.secondary
+                                    color = MaterialTheme.colorScheme.secondary
                                 )
                             }
                             if (record.remark.isNotEmpty()) {
@@ -409,7 +366,5 @@ private fun calculateSalary(
         OvertimeType.WORKDAY -> record.duration * hourlyRate * workdayRate
         OvertimeType.RESTDAY -> record.duration * hourlyRate * restdayRate
         OvertimeType.HOLIDAY -> record.duration * hourlyRate * holidayRate
-        OvertimeType.LEAVE_HALF -> 0.0
-        OvertimeType.LEAVE_FULL -> 0.0
     }
 }

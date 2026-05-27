@@ -1,7 +1,6 @@
 package com.mars.overtime.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -34,11 +33,16 @@ fun MainNav() {
     var currentBottomNavScreen by remember { mutableStateOf<BottomNavScreen>(BottomNavScreen.Home) }
     val quickReportMode by ThemeManager.quickReportMode.collectAsState()
     val bottomBarStyle by ThemeManager.bottomBarStyle.collectAsState()
-    val currentRoute by navController.currentBackStackEntryFlow.collectAsState(initial = null)
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
     
-    val isMainScreen = remember(currentRoute) {
-        val route = currentRoute?.destination?.route
-        route in listOf(BottomNavScreen.Statistics.route, BottomNavScreen.Home.route, BottomNavScreen.Settings.route)
+    val isMainScreen by remember {
+        derivedStateOf {
+            currentBackStackEntry?.destination?.route in listOf(
+                BottomNavScreen.Statistics.route,
+                BottomNavScreen.Home.route,
+                BottomNavScreen.Settings.route
+            )
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -58,42 +62,6 @@ fun MainNav() {
         }
     }
 
-    val onNavigateToAddEdit: () -> Unit = {
-        navController.navigate("add_edit_record")
-    }
-
-    val onNavigateToAppearanceSettings: () -> Unit = {
-        navController.navigate("appearance_settings")
-    }
-
-    val onNavigateToPushSettings: () -> Unit = {
-        navController.navigate("push_settings")
-    }
-
-    val onNavigateToSalarySettings: () -> Unit = {
-        navController.navigate("salary_settings")
-    }
-
-    val onNavigateToCalendarSettings: () -> Unit = {
-        navController.navigate("calendar_settings")
-    }
-
-    val onNavigateToBackupSettings: () -> Unit = {
-        navController.navigate("backup_settings")
-    }
-
-    val onNavigateToHolidaySettings: () -> Unit = {
-        navController.navigate("holiday_settings")
-    }
-
-    val onNavigateToAbout: () -> Unit = {
-        navController.navigate("about")
-    }
-
-    val onNavigateBack: () -> Unit = {
-        navController.popBackStack()
-    }
-
     Scaffold(
         bottomBar = {
             if (isMainScreen) {
@@ -110,7 +78,7 @@ fun MainNav() {
                     },
                     onNavigateToHome = {
                         if (quickReportMode) {
-                            onNavigateToAddEdit()
+                            navController.navigate("add_edit_record")
                         } else {
                             if (currentBottomNavScreen != BottomNavScreen.Home) {
                                 navController.navigate(BottomNavScreen.Home.route) {
@@ -151,7 +119,9 @@ fun MainNav() {
             composable(BottomNavScreen.Home.route) {
                 currentBottomNavScreen = BottomNavScreen.Home
                 HomePage(
-                    onNavigateToAddEdit = onNavigateToAddEdit,
+                    onNavigateToAddEdit = {
+                        navController.navigate("add_edit_record")
+                    },
                     onNavigateToSettings = {
                         navController.navigate(BottomNavScreen.Settings.route) {
                             popUpTo(BottomNavScreen.Home.route) { saveState = true }
@@ -166,46 +136,76 @@ fun MainNav() {
             composable(BottomNavScreen.Settings.route) {
                 currentBottomNavScreen = BottomNavScreen.Settings
                 SettingsPage(
-                    onNavigateToAppearanceSettings = onNavigateToAppearanceSettings,
-                    onNavigateToPushSettings = onNavigateToPushSettings,
-                    onNavigateToSalarySettings = onNavigateToSalarySettings,
-                    onNavigateToCalendarSettings = onNavigateToCalendarSettings,
-                    onNavigateToBackupSettings = onNavigateToBackupSettings,
-                    onNavigateToHolidaySettings = onNavigateToHolidaySettings,
-                    onNavigateToAbout = onNavigateToAbout
+                    onNavigateToAppearanceSettings = {
+                        navController.navigate("appearance_settings")
+                    },
+                    onNavigateToPushSettings = {
+                        navController.navigate("push_settings")
+                    },
+                    onNavigateToSalarySettings = {
+                        navController.navigate("salary_settings")
+                    },
+                    onNavigateToCalendarSettings = {
+                        navController.navigate("calendar_settings")
+                    },
+                    onNavigateToBackupSettings = {
+                        navController.navigate("backup_settings")
+                    },
+                    onNavigateToHolidaySettings = {
+                        navController.navigate("holiday_settings")
+                    },
+                    onNavigateToAbout = {
+                        navController.navigate("about")
+                    }
                 )
             }
 
             composable("add_edit_record") {
-                AddEditRecordPage(onNavigateBack = onNavigateBack)
+                AddEditRecordPage(onNavigateBack = {
+                    navController.popBackStack()
+                })
             }
 
             composable("appearance_settings") {
-                AppearanceSettingsPage(onNavigateBack = onNavigateBack)
+                AppearanceSettingsPage(onNavigateBack = {
+                    navController.popBackStack()
+                })
             }
 
             composable("push_settings") {
-                PushSettingsPage(onNavigateBack = onNavigateBack)
+                PushSettingsPage(onNavigateBack = {
+                    navController.popBackStack()
+                })
             }
 
             composable("salary_settings") {
-                SalarySettingsPage(onNavigateBack = onNavigateBack)
+                SalarySettingsPage(onNavigateBack = {
+                    navController.popBackStack()
+                })
             }
 
             composable("calendar_settings") {
-                CalendarSettingsPage(onNavigateBack = onNavigateBack)
+                CalendarSettingsPage(onNavigateBack = {
+                    navController.popBackStack()
+                })
             }
 
             composable("backup_settings") {
-                BackupSettingsPage(onNavigateBack = onNavigateBack)
+                BackupSettingsPage(onNavigateBack = {
+                    navController.popBackStack()
+                })
             }
 
             composable("holiday_settings") {
-                HolidaySettingsPage(onNavigateBack = onNavigateBack)
+                HolidaySettingsPage(onNavigateBack = {
+                    navController.popBackStack()
+                })
             }
 
             composable("about") {
-                AboutPage(onNavigateBack = onNavigateBack)
+                AboutPage(onNavigateBack = {
+                    navController.popBackStack()
+                })
             }
         }
     }
@@ -221,7 +221,6 @@ fun BottomNavigationBar(
     bottomBarStyle: BottomBarStyle = BottomBarStyle.ICON_AND_TEXT
 ) {
     if (quickReportMode) {
-        // 快速提报模式 - 特殊样式
         NavigationBar {
             NavigationBarItem(
                 selected = currentScreen == BottomNavScreen.Statistics,
@@ -239,7 +238,6 @@ fun BottomNavigationBar(
                 } else null
             )
 
-            // 中间突出的快速提报按钮
             Box(
                 modifier = Modifier
                     .padding(vertical = 4.dp)
@@ -280,7 +278,6 @@ fun BottomNavigationBar(
             )
         }
     } else {
-        // 普通模式 - 标准导航栏
         NavigationBar {
             NavigationBarItem(
                 selected = currentScreen == BottomNavScreen.Statistics,

@@ -68,8 +68,6 @@ fun AddEditRecordPage(
     var showDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
-    var isLeaveType by remember { mutableStateOf(false) }
-    var isSubmitting by remember { mutableStateOf(false) } // 防重复提交
 
     val allConfigs by configDao.getAllConfigs().collectAsState(initial = emptyList())
 
@@ -78,14 +76,11 @@ fun AddEditRecordPage(
         scope.launch {
             try {
                 val holidayInfoResult = HolidayManager.getOvertimeType(dateStr)
-                if (!isLeaveType) {
-                    selectedType = holidayInfoResult
-                }
+                selectedType = holidayInfoResult
                 holidayInfo = when (holidayInfoResult) {
                     OvertimeType.WORKDAY -> "工作日"
                     OvertimeType.RESTDAY -> "休息日"
                     OvertimeType.HOLIDAY -> "法定节假日"
-                    else -> null
                 }
                 // 如果是休息日或节假日，默认开始时间设为8点
                 if (holidayInfoResult == OvertimeType.RESTDAY || holidayInfoResult == OvertimeType.HOLIDAY) {
@@ -102,13 +97,7 @@ fun AddEditRecordPage(
     }
 
     LaunchedEffect(selectedStartTime, selectedEndTime, selectedType, allConfigs) {
-        duration = if (selectedType == OvertimeType.LEAVE_HALF) {
-            -4.0
-        } else if (selectedType == OvertimeType.LEAVE_FULL) {
-            -8.0
-        } else {
-            SalaryCalculator.calculateDuration(selectedStartTime, selectedEndTime)
-        }
+        duration = SalaryCalculator.calculateDuration(selectedStartTime, selectedEndTime)
         money = SalaryCalculator.calculateMoneyWithConfig(allConfigs, selectedType, duration)
     }
 
@@ -121,6 +110,7 @@ fun AddEditRecordPage(
             }
         } catch (e: Exception) {
         }
+        // 确保设置为中午12点
         cal.set(Calendar.HOUR_OF_DAY, 12)
         cal.set(Calendar.MINUTE, 0)
         cal.set(Calendar.SECOND, 0)
@@ -136,10 +126,7 @@ fun AddEditRecordPage(
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "返回")
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                }
             )
         }
     ) { padding ->
@@ -158,7 +145,7 @@ fun AddEditRecordPage(
             }
             Spacer(modifier = Modifier.height(8.dp))
 
-            if (holidayInfo != null && !isLeaveType) {
+            if (holidayInfo != null) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
@@ -193,111 +180,56 @@ fun AddEditRecordPage(
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 记录类型选择
-            Text("记录类型:", style = MaterialTheme.typography.titleMedium)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(
+                    onClick = { showStartTimePicker = true },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("开始: $selectedStartTime")
+                }
+                OutlinedButton(
+                    onClick = { showEndTimePicker = true },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("结束: $selectedEndTime")
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("加班时长: ${"%.2f".format(duration)} 小时", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
-            
-            // 加班类型
-            Text("加班", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.height(4.dp))
+
+            Text("加班类型:", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf(OvertimeType.WORKDAY, OvertimeType.RESTDAY, OvertimeType.HOLIDAY).forEach { type ->
+                OvertimeType.values().forEach { type ->
                     FilterChip(
                         selected = selectedType == type,
-                        onClick = { 
-                            selectedType = type
-                            isLeaveType = false
-                        },
+                        onClick = { selectedType = type },
                         label = {
                             Text(
                                 when (type) {
                                     OvertimeType.WORKDAY -> "工作日"
                                     OvertimeType.RESTDAY -> "休息日"
                                     OvertimeType.HOLIDAY -> "法定节假日"
-                                    else -> ""
                                 }
                             )
                         }
                     )
                 }
             }
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            // 请假类型
-            Text("请假", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.secondary)
-            Spacer(modifier = Modifier.height(4.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf(OvertimeType.LEAVE_HALF, OvertimeType.LEAVE_FULL).forEach { type ->
-                    FilterChip(
-                        selected = selectedType == type,
-                        onClick = { 
-                            selectedType = type
-                            isLeaveType = true
-                            if (type == OvertimeType.LEAVE_HALF) {
-                                duration = -4.0
-                                selectedStartTime = "08:00"
-                                selectedEndTime = "12:00"
-                            } else {
-                                duration = -8.0
-                                selectedStartTime = "08:00"
-                                selectedEndTime = "17:00"
-                            }
-                        },
-                        label = {
-                            Text(
-                                when (type) {
-                                    OvertimeType.LEAVE_HALF -> "半天 (4小时)"
-                                    OvertimeType.LEAVE_FULL -> "全天 (8小时)"
-                                    else -> ""
-                                }
-                            )
-                        }
-                    )
-                }
-            }
-            
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 时间选择（仅非请假类型显示）
-            if (!isLeaveType) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = { showStartTimePicker = true },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("开始: $selectedStartTime")
-                    }
-                    OutlinedButton(
-                        onClick = { showEndTimePicker = true },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("结束: $selectedEndTime")
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            Text(
-                text = if (isLeaveType) "请假时长: ${"%.0f".format(duration)} 小时" else "加班时长: ${"%.2f".format(duration)} 小时", 
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = if (isLeaveType) "请假不计入加班费" else "预计金额: ¥${"%.2f".format(money)}", 
-                style = MaterialTheme.typography.titleMedium,
-                color = if (isLeaveType) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary
-            )
+            Text("预计金额: ¥${"%.2f".format(money)}", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = remark,
                 onValueChange = { remark = it },
-                label = { Text(if (isLeaveType) "请假事由" else "加班事由") },
+                label = { Text("加班事由") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3
             )
@@ -305,74 +237,56 @@ fun AddEditRecordPage(
 
             Button(
                 onClick = {
-                    if (isSubmitting) return@Button
-                    isSubmitting = true
                     scope.launch {
-                        try {
-                            val record = OvertimeRecord(
-                                id = 0,
-                                date = selectedDate,
-                                startTime = selectedStartTime,
-                                endTime = selectedEndTime,
-                                duration = duration,
-                                type = selectedType,
-                                money = money,
-                                remark = remark,
-                                createTime = System.currentTimeMillis()
-                            )
-                            overtimeDao.insertRecord(record)
+                        val record = OvertimeRecord(
+                            id = 0,
+                            date = selectedDate,
+                            startTime = selectedStartTime,
+                            endTime = selectedEndTime,
+                            duration = duration,
+                            type = selectedType,
+                            money = money,
+                            remark = remark,
+                            createTime = System.currentTimeMillis()
+                        )
+                        overtimeDao.insertRecord(record)
 
-                            // 请假类型不推送
-                            if (!isLeaveType) {
-                                val configs = configDao.getAllConfigsOnce()
-                                val dingUrl = configs.find { it.key == "push_dingtalk" }?.value
-                                val feishuUrl = configs.find { it.key == "push_feishu" }?.value
-                                val wxUrl = configs.find { it.key == "push_wxpusher" }?.value
-                                val customUrl = configs.find { it.key == "push_custom" }?.value
-                                val calendarEnabled = configs.find { it.key == "calendar_enabled" }?.value == "true"
+                        val configs = configDao.getAllConfigsOnce()
+                        val dingUrl = configs.find { it.key == "push_dingtalk" }?.value
+                        val feishuUrl = configs.find { it.key == "push_feishu" }?.value
+                        val wxUrl = configs.find { it.key == "push_wxpusher" }?.value
+                        val customUrl = configs.find { it.key == "push_custom" }?.value
+                        val calendarEnabled = configs.find { it.key == "calendar_enabled" }?.value == "true"
 
-                                if (!dingUrl.isNullOrBlank()) {
-                                    PushManager.sendDingTalk(dingUrl, record)
-                                }
-                                if (!feishuUrl.isNullOrBlank()) {
-                                    PushManager.sendFeishu(feishuUrl, record)
-                                }
-                                if (!wxUrl.isNullOrBlank()) {
-                                    PushManager.sendWxPusher(wxUrl, record)
-                                }
-                                if (!customUrl.isNullOrBlank()) {
-                                    PushManager.sendCustom(customUrl, record)
-                                }
-                                
-                                if (calendarEnabled) {
-                                    CalendarSyncManager.addEvent(context, record)
-                                }
-                            }
-
-                            onNavigateBack()
-                        } finally {
-                            isSubmitting = false
+                        if (!dingUrl.isNullOrBlank()) {
+                            PushManager.sendDingTalk(dingUrl, record)
                         }
+                        if (!feishuUrl.isNullOrBlank()) {
+                            PushManager.sendFeishu(feishuUrl, record)
+                        }
+                        if (!wxUrl.isNullOrBlank()) {
+                            PushManager.sendWxPusher(wxUrl, record)
+                        }
+                        if (!customUrl.isNullOrBlank()) {
+                            PushManager.sendCustom(customUrl, record)
+                        }
+                        
+                        if (calendarEnabled) {
+                            CalendarSyncManager.addEvent(context, record)
+                        }
+
+                        onNavigateBack()
                     }
                 },
-                enabled = !isSubmitting,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
             ) {
-                if (isSubmitting) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                } else {
-                    Text(
-                        text = "保存",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
+                Text(
+                    text = "保存",
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
         }
     }
@@ -394,9 +308,11 @@ fun AddEditRecordPage(
                         if (selectedMillis != null) {
                             val cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"), Locale.CHINA)
                             cal.timeInMillis = selectedMillis
+                            // 确保时区正确，先获取选中日期的年月日
                             val year = cal.get(Calendar.YEAR)
                             val month = cal.get(Calendar.MONTH)
                             val day = cal.get(Calendar.DAY_OF_MONTH)
+                            // 重新设置为中午12点，避免时区偏移
                             cal.clear()
                             cal.set(Calendar.YEAR, year)
                             cal.set(Calendar.MONTH, month)
@@ -406,9 +322,7 @@ fun AddEditRecordPage(
                             cal.set(Calendar.SECOND, 0)
                             cal.set(Calendar.MILLISECOND, 0)
                             selectedDate = dateFormat.format(cal.time)
-                            if (!isLeaveType) {
-                                updateOvertimeType(selectedDate)
-                            }
+                            updateOvertimeType(selectedDate)
                         }
                         showDatePicker = false
                     }

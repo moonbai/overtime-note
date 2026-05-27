@@ -28,9 +28,9 @@ object PushManager {
         return """日期: ${record.date}
 类型: $typeStr
 时间: ${record.startTime}-${record.endTime}
-加班时长: ${"%.2f".format(record.duration)}
+时长: ${"%.2f".format(record.duration)}
 金额: ¥${"%.2f".format(record.money)}
-加班事由: $reason""".trimIndent()
+事由: $reason""".trimIndent()
     }
 
     suspend fun sendDingTalk(url: String, record: OvertimeRecord): Boolean = withContext(Dispatchers.IO) {
@@ -94,6 +94,27 @@ object PushManager {
         }
     }
 
+    suspend fun sendWeCom(url: String, record: OvertimeRecord): Boolean = withContext(Dispatchers.IO) {
+        val text = buildText(record)
+        val json = """{"msgtype":"text","text":{"content":"${escapeJson(text)}"}}"""
+        try {
+            val body = json.toRequestBody(mediaType)
+            val req = Request.Builder()
+                .url(url)
+                .post(body)
+                .header("Content-Type", "application/json; charset=utf-8")
+                .build()
+            val res = client.newCall(req).execute()
+            val response = res.body?.string()
+            Log.d("PushManager", "企业微信推送响应: $response")
+            res.close()
+            res.isSuccessful && response?.contains("\"errcode\":0") == true
+        } catch (e: Exception) {
+            Log.e("PushManager", "企业微信推送失败", e)
+            false
+        }
+    }
+
     suspend fun sendWxPusher(url: String, record: OvertimeRecord): Boolean = withContext(Dispatchers.IO) {
         val text = buildText(record)
         val json = """{"content":"${escapeJson(text)}","contentType":1,"summary":"加班记录推送"}"""
@@ -111,6 +132,47 @@ object PushManager {
             res.isSuccessful && response?.contains("\"success\":true") == true
         } catch (e: Exception) {
             Log.e("PushManager", "WxPusher推送失败", e)
+            false
+        }
+    }
+
+    suspend fun sendTelegram(url: String, record: OvertimeRecord): Boolean = withContext(Dispatchers.IO) {
+        val text = buildText(record)
+        val json = """{"chat_id":null,"text":"${escapeJson(text)}"}"""
+        try {
+            val body = json.toRequestBody(mediaType)
+            val req = Request.Builder()
+                .url(url)
+                .post(body)
+                .header("Content-Type", "application/json; charset=utf-8")
+                .build()
+            val res = client.newCall(req).execute()
+            val response = res.body?.string()
+            Log.d("PushManager", "Telegram推送响应: $response")
+            res.close()
+            res.isSuccessful && response?.contains("\"ok\":true") == true
+        } catch (e: Exception) {
+            Log.e("PushManager", "Telegram推送失败", e)
+            false
+        }
+    }
+
+    suspend fun sendDiscord(url: String, record: OvertimeRecord): Boolean = withContext(Dispatchers.IO) {
+        val text = buildText(record)
+        val json = """{"content":"${escapeJson(text)}"}"""
+        try {
+            val body = json.toRequestBody(mediaType)
+            val req = Request.Builder()
+                .url(url)
+                .post(body)
+                .header("Content-Type", "application/json; charset=utf-8")
+                .build()
+            val res = client.newCall(req).execute()
+            Log.d("PushManager", "Discord推送响应码: ${res.code}")
+            res.close()
+            res.isSuccessful
+        } catch (e: Exception) {
+            Log.e("PushManager", "Discord推送失败", e)
             false
         }
     }

@@ -1,15 +1,14 @@
 package com.mars.overtime.ui.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,153 +32,34 @@ fun SettingsPage(
             )
         }
     ) { padding ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-                SettingsSection(title = "通用设置")
-            }
-            
-            item {
-                SettingsItem(
-                    icon = Icons.Default.Palette,
-                    title = "外观设置",
-                    subtitle = "主题、颜色、导航栏样式",
-                    onClick = onNavigateToAppearanceSettings
-                )
-            }
-            
-            item {
-                SettingsItem(
-                    icon = Icons.Default.AttachMoney,
-                    title = "薪资设置",
-                    subtitle = "基础薪资、加班倍率",
-                    onClick = onNavigateToSalarySettings
-                )
-            }
-            
-            item {
-                SettingsItem(
-                    icon = Icons.Default.Notifications,
-                    title = "推送设置",
-                    subtitle = "配置消息推送渠道",
-                    onClick = onNavigateToPushSettings
-                )
-            }
-            
-            item {
-                SettingsItem(
-                    icon = Icons.Default.CalendarMonth,
-                    title = "日历设置",
-                    subtitle = "同步到系统日历",
-                    onClick = onNavigateToCalendarSettings
-                )
-            }
-            
-            item {
-                SettingsItem(
-                    icon = Icons.Default.Event,
-                    title = "节假日设置",
-                    subtitle = "自定义节假日数据源",
-                    onClick = onNavigateToHolidaySettings
-                )
-            }
-            
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                SettingsSection(title = "数据管理")
-            }
-            
-            item {
-                SettingsItem(
-                    icon = Icons.Default.Backup,
-                    title = "备份与恢复",
-                    subtitle = "本地备份、云同步",
-                    onClick = onNavigateToBackupSettings
-                )
-            }
-            
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                SettingsSection(title = "关于")
-            }
-            
-            item {
-                SettingsItem(
-                    icon = Icons.Default.Info,
-                    title = "关于应用",
-                    subtitle = "版本信息、开发者",
-                    onClick = onNavigateToAbout
-                )
-            }
-            
-            item {
-                Spacer(modifier = Modifier.height(32.dp))
-            }
+            SettingsItem("外观设置", "主题、强调色、字体大小", onNavigateToAppearanceSettings)
+            SettingsItem("推送设置", "钉钉、飞书、WxPusher、自定义推送", onNavigateToPushSettings)
+            SettingsItem("薪资设置", "基础薪资、加班倍率", onNavigateToSalarySettings)
+            SettingsItem("日历同步", "安卓日历同步设置", onNavigateToCalendarSettings)
+            SettingsItem("备份恢复", "本地备份、WebDAV云端备份", onNavigateToBackupSettings)
+            SettingsItem("节假日管理", "更新节假日规则", onNavigateToHolidaySettings)
+            SettingsItem("关于", "版本信息、作者", onNavigateToAbout)
         }
     }
-}
-
-@Composable
-fun SettingsSection(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)
-    )
 }
 
 @Composable
 fun SettingsItem(
-    icon: ImageVector,
     title: String,
     subtitle: String,
     onClick: () -> Unit
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        onClick = onClick,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp)
-            )
-        }
-    }
+    ListItem(
+        headlineContent = { Text(title) },
+        supportingContent = { Text(subtitle) },
+        trailingContent = { Icon(Icons.Default.ArrowForward, contentDescription = null) },
+        modifier = Modifier.clickable(onClick = onClick)
+    )
+    HorizontalDivider()
 }

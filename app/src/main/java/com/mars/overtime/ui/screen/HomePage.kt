@@ -37,17 +37,13 @@ fun HomePage(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("加班记") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                title = { Text("加班记") }
             )
         },
         floatingActionButton = {
-            LargeFloatingActionButton(
+            FloatingActionButton(
                 onClick = onNavigateToAddEdit,
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                modifier = Modifier.size(64.dp)
             ) {
                 Icon(
                     Icons.Default.Add,
@@ -61,7 +57,7 @@ fun HomePage(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp)
+                .padding(16.dp)
         ) {
             if (records.isEmpty()) {
                 item {
@@ -122,11 +118,7 @@ fun OvertimeRecordItem(
         OvertimeType.WORKDAY -> "工作日延时"
         OvertimeType.RESTDAY -> "休息日"
         OvertimeType.HOLIDAY -> "法定节假日"
-        OvertimeType.LEAVE_HALF -> "请假(半天)"
-        OvertimeType.LEAVE_FULL -> "请假(全天)"
     }
-    
-    val isLeave = record.type == OvertimeType.LEAVE_HALF || record.type == OvertimeType.LEAVE_FULL
     
     val dateStr = record.date
 
@@ -147,14 +139,14 @@ fun OvertimeRecordItem(
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
-                    text = if (isLeave) "扣除 ${"%.0f".format(record.duration)} 小时" else "¥${"%.2f".format(record.money)}",
+                    text = "¥${"%.2f".format(record.money)}",
                     style = MaterialTheme.typography.titleMedium,
-                    color = if (isLeave) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = if (isLeave) "$typeStr | 扣除 ${"%.0f".format(record.duration)} 小时" else "$typeStr | ${record.startTime} - ${record.endTime} | ${"%.2f".format(record.duration)}小时",
+                text = "$typeStr | ${record.startTime} - ${record.endTime} | ${"%.2f".format(record.duration)}小时",
                 style = MaterialTheme.typography.bodyMedium
             )
             if (record.remark.isNotBlank()) {
