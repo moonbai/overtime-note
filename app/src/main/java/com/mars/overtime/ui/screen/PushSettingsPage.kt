@@ -27,10 +27,14 @@ fun PushSettingsPage(
 
     var pushEnabled by remember { mutableStateOf(false) }
     var selectedChannel by remember { mutableStateOf(0) }
+    
     var dingtalkUrl by remember { mutableStateOf("") }
     var feishuUrl by remember { mutableStateOf("") }
     var wxPusherUrl by remember { mutableStateOf("") }
     var customUrl by remember { mutableStateOf("") }
+    var workWechatUrl by remember { mutableStateOf("") }
+    var barkUrl by remember { mutableStateOf("") }
+    var serverchanKey by remember { mutableStateOf("") }
 
     LaunchedEffect(configs) {
         pushEnabled = configs.find { it.key == "push_enabled" }?.value?.toBoolean() ?: false
@@ -38,12 +42,18 @@ fun PushSettingsPage(
         feishuUrl = configs.find { it.key == "push_feishu" }?.value ?: ""
         wxPusherUrl = configs.find { it.key == "push_wxpusher" }?.value ?: ""
         customUrl = configs.find { it.key == "push_custom" }?.value ?: ""
+        workWechatUrl = configs.find { it.key == "push_workwechat" }?.value ?: ""
+        barkUrl = configs.find { it.key == "push_bark" }?.value ?: ""
+        serverchanKey = configs.find { it.key == "push_serverchan" }?.value ?: ""
         
         selectedChannel = when {
             dingtalkUrl.isNotEmpty() -> 1
             feishuUrl.isNotEmpty() -> 2
             wxPusherUrl.isNotEmpty() -> 3
-            customUrl.isNotEmpty() -> 4
+            workWechatUrl.isNotEmpty() -> 4
+            barkUrl.isNotEmpty() -> 5
+            serverchanKey.isNotEmpty() -> 6
+            customUrl.isNotEmpty() -> 7
             else -> 0
         }
     }
@@ -53,6 +63,9 @@ fun PushSettingsPage(
         "钉钉机器人",
         "飞书机器人",
         "WxPusher",
+        "企业微信",
+        "Bark (iOS)",
+        "Server酱",
         "自定义Webhook"
     )
 
@@ -78,7 +91,6 @@ fun PushSettingsPage(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            // 总开关
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -152,62 +164,102 @@ fun PushSettingsPage(
                 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                when (selectedChannel) {
-                    1 -> {
-                        Text(
-                            text = "钉钉机器人Webhook地址",
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedTextField(
-                            value = dingtalkUrl,
-                            onValueChange = { dingtalkUrl = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("https://oapi.dingtalk.com/robot/send?access_token=...") },
-                            singleLine = true
-                        )
-                    }
-                    2 -> {
-                        Text(
-                            text = "飞书机器人Webhook地址",
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedTextField(
-                            value = feishuUrl,
-                            onValueChange = { feishuUrl = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("https://open.feishu.cn/open-apis/bot/v2/hook/...") },
-                            singleLine = true
-                        )
-                    }
-                    3 -> {
-                        Text(
-                            text = "WxPusher地址",
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedTextField(
-                            value = wxPusherUrl,
-                            onValueChange = { wxPusherUrl = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("WxPusher推送地址") },
-                            singleLine = true
-                        )
-                    }
-                    4 -> {
-                        Text(
-                            text = "自定义Webhook地址",
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedTextField(
-                            value = customUrl,
-                            onValueChange = { customUrl = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("https://your-webhook-url.com/api/push") },
-                            singleLine = true
-                        )
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        when (selectedChannel) {
+                            1 -> {
+                                Text("钉钉机器人", style = MaterialTheme.typography.titleSmall)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                OutlinedTextField(
+                                    value = dingtalkUrl,
+                                    onValueChange = { dingtalkUrl = it },
+                                    label = { Text("Webhook 地址") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    placeholder = { Text("https://oapi.dingtalk.com/robot/send?access_token=...") },
+                                    singleLine = true
+                                )
+                            }
+                            2 -> {
+                                Text("飞书机器人", style = MaterialTheme.typography.titleSmall)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                OutlinedTextField(
+                                    value = feishuUrl,
+                                    onValueChange = { feishuUrl = it },
+                                    label = { Text("Webhook 地址") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    placeholder = { Text("https://open.feishu.cn/open-apis/bot/v2/hook/...") },
+                                    singleLine = true
+                                )
+                            }
+                            3 -> {
+                                Text("WxPusher", style = MaterialTheme.typography.titleSmall)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                OutlinedTextField(
+                                    value = wxPusherUrl,
+                                    onValueChange = { wxPusherUrl = it },
+                                    label = { Text("WxPusher 地址") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    placeholder = { Text("WxPusher 推送地址") },
+                                    singleLine = true
+                                )
+                            }
+                            4 -> {
+                                Text("企业微信机器人", style = MaterialTheme.typography.titleSmall)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                OutlinedTextField(
+                                    value = workWechatUrl,
+                                    onValueChange = { workWechatUrl = it },
+                                    label = { Text("Webhook 地址") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    placeholder = { Text("https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=...") },
+                                    singleLine = true
+                                )
+                            }
+                            5 -> {
+                                Text("Bark (iOS 推送)", style = MaterialTheme.typography.titleSmall)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                OutlinedTextField(
+                                    value = barkUrl,
+                                    onValueChange = { barkUrl = it },
+                                    label = { Text("Bark 服务器地址") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    placeholder = { Text("https://api.day.app/你的KEY") },
+                                    singleLine = true
+                                )
+                            }
+                            6 -> {
+                                Text("Server酱", style = MaterialTheme.typography.titleSmall)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                OutlinedTextField(
+                                    value = serverchanKey,
+                                    onValueChange = { serverchanKey = it },
+                                    label = { Text("SCKEY") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    placeholder = { Text("Server酱的 SCKEY") },
+                                    singleLine = true
+                                )
+                            }
+                            7 -> {
+                                Text("自定义 Webhook", style = MaterialTheme.typography.titleSmall)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                OutlinedTextField(
+                                    value = customUrl,
+                                    onValueChange = { customUrl = it },
+                                    label = { Text("Webhook 地址") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    placeholder = { Text("https://your-webhook-url.com/api/push") },
+                                    singleLine = true
+                                )
+                            }
+                            else -> {
+                                Text("请选择推送渠道", style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
                     }
                 }
 
@@ -219,13 +271,19 @@ fun PushSettingsPage(
                             configDao.deleteConfig("push_dingtalk")
                             configDao.deleteConfig("push_feishu")
                             configDao.deleteConfig("push_wxpusher")
+                            configDao.deleteConfig("push_workwechat")
+                            configDao.deleteConfig("push_bark")
+                            configDao.deleteConfig("push_serverchan")
                             configDao.deleteConfig("push_custom")
                             
                             when (selectedChannel) {
-                                1 -> configDao.saveConfig(AppConfig("push_dingtalk", dingtalkUrl))
-                                2 -> configDao.saveConfig(AppConfig("push_feishu", feishuUrl))
-                                3 -> configDao.saveConfig(AppConfig("push_wxpusher", wxPusherUrl))
-                                4 -> configDao.saveConfig(AppConfig("push_custom", customUrl))
+                                1 -> if (dingtalkUrl.isNotEmpty()) configDao.saveConfig(AppConfig("push_dingtalk", dingtalkUrl))
+                                2 -> if (feishuUrl.isNotEmpty()) configDao.saveConfig(AppConfig("push_feishu", feishuUrl))
+                                3 -> if (wxPusherUrl.isNotEmpty()) configDao.saveConfig(AppConfig("push_wxpusher", wxPusherUrl))
+                                4 -> if (workWechatUrl.isNotEmpty()) configDao.saveConfig(AppConfig("push_workwechat", workWechatUrl))
+                                5 -> if (barkUrl.isNotEmpty()) configDao.saveConfig(AppConfig("push_bark", barkUrl))
+                                6 -> if (serverchanKey.isNotEmpty()) configDao.saveConfig(AppConfig("push_serverchan", serverchanKey))
+                                7 -> if (customUrl.isNotEmpty()) configDao.saveConfig(AppConfig("push_custom", customUrl))
                             }
                             onNavigateBack()
                         }

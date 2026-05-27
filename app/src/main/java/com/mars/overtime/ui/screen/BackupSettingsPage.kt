@@ -208,28 +208,29 @@ fun BackupSettingsPage(
             HorizontalDivider()
             Spacer(modifier = Modifier.height(16.dp))
 
-            // WebDAV 云端备份（默认折叠）
-            Card(
+            // WebDAV 云端备份标题（不折叠）
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("WebDAV 云端备份", style = MaterialTheme.typography.titleMedium)
-                        TextButton(onClick = { webdavExpanded = !webdavExpanded }) {
-                            Text(if (webdavExpanded) "收起" else "展开")
-                        }
-                    }
-                    
-                    if (webdavExpanded) {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        
+                Text("WebDAV 云端备份", style = MaterialTheme.typography.titleMedium)
+                TextButton(onClick = { webdavExpanded = !webdavExpanded }) {
+                    Text(if (webdavExpanded) "收起" else "展开")
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // 配置信息（可折叠）
+            if (webdavExpanded) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         OutlinedTextField(
                             value = webdavUrl,
                             onValueChange = { webdavUrl = it },

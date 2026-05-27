@@ -36,6 +36,8 @@ fun HolidaySettingsPage(
     var updateResult by remember { mutableStateOf("") }
     var showResultDialog by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
+    var mxnzpExpanded by remember { mutableStateOf(false) }
+    var customExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(allConfigs) {
         dataSource = allConfigs.find { it.key == "holiday_data_source" }?.value?.let {
@@ -107,47 +109,57 @@ fun HolidaySettingsPage(
             Spacer(modifier = Modifier.height(24.dp))
 
             if (dataSource == HolidayDataSource.MXNZP) {
-                Card(
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("MXNZP 配置", style = MaterialTheme.typography.titleMedium)
-                        Spacer(modifier = Modifier.height(12.dp))
-                        
-                        OutlinedTextField(
-                            value = mxnzpAppId,
-                            onValueChange = { mxnzpAppId = it },
-                            label = { Text("App ID") },
-                            modifier = Modifier.fillMaxWidth()
+                    Text("MXNZP 配置", style = MaterialTheme.typography.titleMedium)
+                    TextButton(onClick = { mxnzpExpanded = !mxnzpExpanded }) {
+                        Text(if (mxnzpExpanded) "收起" else "展开")
+                    }
+                }
+                
+                if (mxnzpExpanded) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        
-                        OutlinedTextField(
-                            value = mxnzpAppSecret,
-                            onValueChange = { mxnzpAppSecret = it },
-                            label = { Text("App Secret") },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text("忽略节假日", style = MaterialTheme.typography.bodyLarge)
-                            Switch(
-                                checked = mxnzpIgnoreHoliday,
-                                onCheckedChange = {
-                                    mxnzpIgnoreHoliday = it
-                                    scope.launch {
-                                        configDao.saveConfig(AppConfig("mxnzp_ignore_holiday", it.toString()))
-                                    }
-                                }
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            OutlinedTextField(
+                                value = mxnzpAppId,
+                                onValueChange = { mxnzpAppId = it },
+                                label = { Text("App ID") },
+                                modifier = Modifier.fillMaxWidth()
                             )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            
+                            OutlinedTextField(
+                                value = mxnzpAppSecret,
+                                onValueChange = { mxnzpAppSecret = it },
+                                label = { Text("App Secret") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("忽略节假日", style = MaterialTheme.typography.bodyLarge)
+                                Switch(
+                                    checked = mxnzpIgnoreHoliday,
+                                    onCheckedChange = {
+                                        mxnzpIgnoreHoliday = it
+                                        scope.launch {
+                                            configDao.saveConfig(AppConfig("mxnzp_ignore_holiday", it.toString()))
+                                        }
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -155,30 +167,41 @@ fun HolidaySettingsPage(
             }
 
             if (dataSource == HolidayDataSource.CUSTOM) {
-                Card(
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("自定义 API 配置", style = MaterialTheme.typography.titleMedium)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            "支持 {year} 或 \${year} 占位符自动替换年份",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                    Text("自定义 API 配置", style = MaterialTheme.typography.titleMedium)
+                    TextButton(onClick = { customExpanded = !customExpanded }) {
+                        Text(if (customExpanded) "收起" else "展开")
+                    }
+                }
+                
+                if (customExpanded) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        
-                        OutlinedTextField(
-                            value = customApiUrl,
-                            onValueChange = { customApiUrl = it },
-                            label = { Text("API 地址") },
-                            placeholder = { Text("https://api.example.com/holiday/year/{year}") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
-                        )
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                "支持 {year} 或 \${year} 占位符自动替换年份",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            
+                            OutlinedTextField(
+                                value = customApiUrl,
+                                onValueChange = { customApiUrl = it },
+                                label = { Text("API 地址") },
+                                placeholder = { Text("https://api.example.com/holiday/year/{year}") },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true
+                            )
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
