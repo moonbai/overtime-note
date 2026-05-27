@@ -127,13 +127,16 @@ fun AddEditRecordPage(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = { Text("新建加班记录") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "返回")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             )
         }
     ) { padding ->

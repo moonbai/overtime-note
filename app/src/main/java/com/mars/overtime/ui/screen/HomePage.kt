@@ -36,26 +36,25 @@ fun HomePage(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = { Text("加班记") },
-                colors = TopAppBarDefaults.topAppBarColors(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
+            FilledIconButton(
                 onClick = onNavigateToAddEdit,
-                modifier = Modifier.size(64.dp),
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                elevation = FloatingActionButtonDefaults.elevation(
-                    defaultElevation = 6.dp
+                modifier = Modifier.size(48.dp),
+                colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
                 )
             ) {
                 Icon(
                     Icons.Default.Add,
                     contentDescription = "新建",
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }

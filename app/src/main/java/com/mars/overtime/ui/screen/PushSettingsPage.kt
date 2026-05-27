@@ -81,7 +81,7 @@ fun PushSettingsPage(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = { Text("推送设置") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
@@ -112,7 +112,7 @@ fun PushSettingsPage(
                         Icon(Icons.Default.Help, contentDescription = "帮助")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             )

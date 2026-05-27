@@ -113,7 +113,9 @@ fun MainNav() {
         NavHost(
             navController = navController,
             startDestination = BottomNavScreen.Home.route,
-            modifier = Modifier.padding(paddingValues)
+            modifier = Modifier.padding(
+                bottom = if (isMainScreen) paddingValues.calculateBottomPadding() else 0.dp
+            )
         ) {
             composable(BottomNavScreen.Statistics.route) {
                 currentBottomNavScreen = BottomNavScreen.Statistics
@@ -225,7 +227,10 @@ fun BottomNavigationBar(
     bottomBarStyle: BottomBarStyle = BottomBarStyle.ICON_AND_TEXT
 ) {
     if (quickReportMode) {
-        NavigationBar {
+        NavigationBar(
+            tonalElevation = 0.dp,
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
             NavigationBarItem(
                 selected = currentScreen == BottomNavScreen.Statistics,
                 onClick = onNavigateToStatistics,
@@ -244,24 +249,21 @@ fun BottomNavigationBar(
 
             Box(
                 modifier = Modifier
-                    .padding(vertical = 4.dp)
-                    .size(64.dp),
+                    .padding(vertical = 2.dp)
+                    .size(56.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(60.dp)
-                        .shadow(6.dp, CircleShape)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer)
-                        .clickable(onClick = onNavigateToHome),
-                    contentAlignment = Alignment.Center
+                FilledIconButton(
+                    onClick = onNavigateToHome,
+                    modifier = Modifier.size(48.dp),
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "快速提报",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
@@ -283,7 +285,10 @@ fun BottomNavigationBar(
             )
         }
     } else {
-        NavigationBar {
+        NavigationBar(
+            tonalElevation = 0.dp,
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
             NavigationBarItem(
                 selected = currentScreen == BottomNavScreen.Statistics,
                 onClick = onNavigateToStatistics,
