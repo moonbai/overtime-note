@@ -69,6 +69,7 @@ fun AddEditRecordPage(
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
     var isLeaveType by remember { mutableStateOf(false) }
+    var isSubmitting by remember { mutableStateOf(false) } // 防重复提交
 
     val allConfigs by configDao.getAllConfigs().collectAsState(initial = emptyList())
 
@@ -304,58 +305,72 @@ fun AddEditRecordPage(
 
             Button(
                 onClick = {
+                    if (isSubmitting) return@Button
+                    isSubmitting = true
                     scope.launch {
-                        val record = OvertimeRecord(
-                            id = 0,
-                            date = selectedDate,
-                            startTime = selectedStartTime,
-                            endTime = selectedEndTime,
-                            duration = duration,
-                            type = selectedType,
-                            money = money,
-                            remark = remark,
-                            createTime = System.currentTimeMillis()
-                        )
-                        overtimeDao.insertRecord(record)
+                        try {
+                            val record = OvertimeRecord(
+                                id = 0,
+                                date = selectedDate,
+                                startTime = selectedStartTime,
+                                endTime = selectedEndTime,
+                                duration = duration,
+                                type = selectedType,
+                                money = money,
+                                remark = remark,
+                                createTime = System.currentTimeMillis()
+                            )
+                            overtimeDao.insertRecord(record)
 
-                        // 请假类型不推送
-                        if (!isLeaveType) {
-                            val configs = configDao.getAllConfigsOnce()
-                            val dingUrl = configs.find { it.key == "push_dingtalk" }?.value
-                            val feishuUrl = configs.find { it.key == "push_feishu" }?.value
-                            val wxUrl = configs.find { it.key == "push_wxpusher" }?.value
-                            val customUrl = configs.find { it.key == "push_custom" }?.value
-                            val calendarEnabled = configs.find { it.key == "calendar_enabled" }?.value == "true"
+                            // 请假类型不推送
+                            if (!isLeaveType) {
+                                val configs = configDao.getAllConfigsOnce()
+                                val dingUrl = configs.find { it.key == "push_dingtalk" }?.value
+                                val feishuUrl = configs.find { it.key == "push_feishu" }?.value
+                                val wxUrl = configs.find { it.key == "push_wxpusher" }?.value
+                                val customUrl = configs.find { it.key == "push_custom" }?.value
+                                val calendarEnabled = configs.find { it.key == "calendar_enabled" }?.value == "true"
 
-                            if (!dingUrl.isNullOrBlank()) {
-                                PushManager.sendDingTalk(dingUrl, record)
+                                if (!dingUrl.isNullOrBlank()) {
+                                    PushManager.sendDingTalk(dingUrl, record)
+                                }
+                                if (!feishuUrl.isNullOrBlank()) {
+                                    PushManager.sendFeishu(feishuUrl, record)
+                                }
+                                if (!wxUrl.isNullOrBlank()) {
+                                    PushManager.sendWxPusher(wxUrl, record)
+                                }
+                                if (!customUrl.isNullOrBlank()) {
+                                    PushManager.sendCustom(customUrl, record)
+                                }
+                                
+                                if (calendarEnabled) {
+                                    CalendarSyncManager.addEvent(context, record)
+                                }
                             }
-                            if (!feishuUrl.isNullOrBlank()) {
-                                PushManager.sendFeishu(feishuUrl, record)
-                            }
-                            if (!wxUrl.isNullOrBlank()) {
-                                PushManager.sendWxPusher(wxUrl, record)
-                            }
-                            if (!customUrl.isNullOrBlank()) {
-                                PushManager.sendCustom(customUrl, record)
-                            }
-                            
-                            if (calendarEnabled) {
-                                CalendarSyncManager.addEvent(context, record)
-                            }
+
+                            onNavigateBack()
+                        } finally {
+                            isSubmitting = false
                         }
-
-                        onNavigateBack()
                     }
                 },
+                enabled = !isSubmitting,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
             ) {
-                Text(
-                    text = "保存",
-                    style = MaterialTheme.typography.titleMedium
+                if (isSubmitting) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text(
+                        text = "保存",
+                        style = MaterialTheme.typography.titleMedium
                 )
             }
         }

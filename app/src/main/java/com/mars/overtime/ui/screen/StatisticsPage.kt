@@ -59,16 +59,18 @@ fun StatisticsPage() {
 
     val hourlyRate = if (baseSalary > 0) baseSalary / 21.75 / 8 else 0.0
 
-    val totalHours = records.sumOf { it.duration }
     val workdayRecords = records.filter { it.type == OvertimeType.WORKDAY }
     val restdayRecords = records.filter { it.type == OvertimeType.RESTDAY }
     val holidayRecords = records.filter { it.type == OvertimeType.HOLIDAY }
     val leaveRecords = records.filter { it.type == OvertimeType.LEAVE_HALF || it.type == OvertimeType.LEAVE_FULL }
 
     val workdayHours = workdayRecords.sumOf { it.duration }
-    val restdayHours = restdayRecords.sumOf { it.duration }
     val holidayHours = holidayRecords.sumOf { it.duration }
+    // 请假时长直接从休息日时长中扣除
     val leaveDeductHours = leaveRecords.sumOf { it.duration } // 负数，如-4、-8
+    val restdayHours = restdayRecords.sumOf { it.duration } + leaveDeductHours
+    // 总时长 = 工作日 + 休息日(含扣除) + 节假日
+    val totalHours = workdayHours + restdayHours + holidayHours
 
     val workdaySalary = workdayHours * hourlyRate * workdayRate
     val restdaySalary = restdayHours * hourlyRate * restdayRate
