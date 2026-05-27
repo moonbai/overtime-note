@@ -163,7 +163,6 @@ cd overtime-note
 ## 👤 作者与许可
 
 - **作者**: Mars
-- **邮箱**: moonbai@moonbai.com
 - **许可**: [MIT License](LICENSE)
 
 ---
