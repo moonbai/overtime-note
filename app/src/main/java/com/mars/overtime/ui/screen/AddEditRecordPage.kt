@@ -371,7 +371,8 @@ fun AddEditRecordPage(
                     Text(
                         text = "保存",
                         style = MaterialTheme.typography.titleMedium
-                )
+                    )
+                }
             }
         }
     }
