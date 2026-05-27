@@ -1,7 +1,5 @@
 package com.mars.overtime.ui.screen
 
-import android.content.Context
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -9,22 +7,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.mars.overtime.OvertimeApplication
-import com.mars.overtime.database.AppDatabase
-import com.mars.overtime.util.BackupManager
-import kotlinx.coroutines.Dispatchers
+import com.mars.overtime.database.AppConfig
+import com.mars.overtime.util.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.json.JSONObject
-import java.io.*
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,61 +25,140 @@ fun BackupSettingsPage(
 ) {
     val context = LocalContext.current
     val db = OvertimeApplication.database
+    val overtimeDao = db.overtimeDao()
+    val configDao = db.configDao()
+
     val scope = rememberCoroutineScope()
 
-    var backupStatus by remember { mutableStateOf<String?>(null) }
-    var restoreStatus by remember { mutableStateOf<String?>(null) }
-    var isLoading by remember { mutableStateOf(false) }
-    var cloudSyncExpanded by remember { mutableStateOf(false) }
+    val records by overtimeDao.getAllRecords().collectAsState(initial = emptyList())
+    val allConfigs by configDao.getAllConfigs().collectAsState(initial = emptyList())
 
-    val backupLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/json")
-    ) { uri: Uri? ->
+    var webdavUrl by remember { mutableStateOf("") }
+    var webdavUsername by remember { mutableStateOf("") }
+    var webdavPassword by remember { mutableStateOf("") }
+    var webdavPath by remember { mutableStateOf("/overtime_backup/") }
+
+    var operationResult by remember { mutableStateOf("") }
+    var showResultDialog by remember { mutableStateOf(false) }
+    var showFilePicker by remember { mutableStateOf(false) }
+    var remoteFiles by remember { mutableStateOf<List<String>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(false) }
+
+    val backupFiles = DataMigrationUtil.listBackupFiles(context)
+
+    LaunchedEffect(allConfigs) {
+        webdavUrl = allConfigs.find { it.key == "webdav_url" }?.value ?: ""
+        webdavUsername = allConfigs.find { it.key == "webdav_username" }?.value ?: ""
+        webdavPassword = allConfigs.find { it.key == "webdav_password" }?.value ?: ""
+        webdavPath = allConfigs.find { it.key == "webdav_path" }?.value ?: "/overtime_backup/"
+    }
+
+    val pickFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
         uri?.let {
             scope.launch {
-                isLoading = true
-                try {
-                    val success = BackupManager.backupToFile(context, db, uri)
-                    backupStatus = if (success) "备份成功" else "备份失败"
-                } catch (e: Exception) {
-                    backupStatus = "备份失败: ${e.message}"
-                } finally {
-                    isLoading = false
+                val inputStream = context.contentResolver.openInputStream(it)
+                inputStream?.use { stream ->
+                    val tempFile = File(context.cacheDir, "import_temp.json")
+                    tempFile.outputStream().use { output -> stream.copyTo(output) }
+                    val data = BackupManager.importData(tempFile.absolutePath)
+                    if (data != null) {
+                        overtimeDao.insertAllRecords(data.records)
+                        configDao.saveConfigs(data.configs)
+                        operationResult = "导入成功！共导入 ${data.records.size} 条记录"
+                    } else {
+                        operationResult = "导入失败，文件格式错误"
+                    }
+                    tempFile.delete()
                 }
+                showResultDialog = true
             }
         }
     }
 
-    val restoreLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri: Uri? ->
+    val createFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
         uri?.let {
             scope.launch {
-                isLoading = true
-                try {
-                    val success = BackupManager.restoreFromFile(context, db, uri)
-                    restoreStatus = if (success) "恢复成功" else "恢复失败"
-                } catch (e: Exception) {
-                    restoreStatus = "恢复失败: ${e.message}"
-                } finally {
-                    isLoading = false
+                val outputStream = context.contentResolver.openOutputStream(it)
+                outputStream?.use { stream ->
+                    val tempFile = File(context.cacheDir, "export_temp.json")
+                    val success = BackupManager.exportData(records, allConfigs, tempFile.absolutePath)
+                    if (success) {
+                        tempFile.inputStream().use { input -> stream.write(input.readBytes()) }
+                        operationResult = "导出成功！"
+                    } else {
+                        operationResult = "导出失败"
+                    }
+                    tempFile.delete()
                 }
+                showResultDialog = true
             }
+        }
+    }
+
+    fun loadRemoteFiles() {
+        isLoading = true
+        scope.launch {
+            val config = WebDavManager.WebDavConfig(
+                baseUrl = webdavUrl,
+                username = webdavUsername,
+                password = webdavPassword,
+                remotePath = webdavPath
+            )
+            val files = WebDavManager.listFiles(config)
+            remoteFiles = files
+            isLoading = false
+            if (files.isNotEmpty()) {
+                showFilePicker = true
+            } else {
+                operationResult = "云端没有备份文件"
+                showResultDialog = true
+            }
+        }
+    }
+
+    fun importFromWebDav(fileName: String) {
+        isLoading = true
+        scope.launch {
+            val tempFile = File(context.cacheDir, "webdav_import_temp.json")
+            val config = WebDavManager.WebDavConfig(
+                baseUrl = webdavUrl,
+                username = webdavUsername,
+                password = webdavPassword,
+                remotePath = webdavPath
+            )
+            val downloadSuccess = WebDavManager.downloadFile(config, fileName, tempFile.absolutePath)
+            if (downloadSuccess) {
+                val data = BackupManager.importData(tempFile.absolutePath)
+                if (data != null) {
+                    overtimeDao.insertAllRecords(data.records)
+                    configDao.saveConfigs(data.configs)
+                    operationResult = "从 WebDAV 导入成功！共导入 ${data.records.size} 条记录"
+                } else {
+                    operationResult = "导入失败，文件格式错误"
+                }
+            } else {
+                operationResult = "从 WebDAV 下载失败"
+            }
+            tempFile.delete()
+            isLoading = false
+            showFilePicker = false
+            showResultDialog = true
         }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("备份与恢复") },
+                title = { Text("备份恢复") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "返回")
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                }
             )
         }
     ) { padding ->
@@ -98,156 +169,206 @@ fun BackupSettingsPage(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            // 本地备份卡片
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(
-                        text = "本地备份",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "将数据备份到本地文件，或从本地文件恢复数据",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Button(
-                            onClick = {
-                                val timeStamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault())
-                                    .format(java.util.Date())
-                                backupLauncher.launch("overtime_backup_$timeStamp.json")
-                            },
-                            enabled = !isLoading,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text("备份数据")
-                        }
-                        OutlinedButton(
-                            onClick = { restoreLauncher.launch(arrayOf("application/json")) },
-                            enabled = !isLoading,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text("恢复数据")
-                        }
+            Text("本地备份", style = MaterialTheme.typography.titleLarge)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = {
+                    scope.launch {
+                        val filePath = DataMigrationUtil.getBackupFilePath(context)
+                        val success = BackupManager.exportData(records, allConfigs, filePath)
+                        operationResult = if (success) "备份成功！\n路径: $filePath" else "备份失败"
+                        showResultDialog = true
                     }
-                }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("备份到本地")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = { createFileLauncher.launch("overtime_backup.json") },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("导出备份文件")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = { pickFileLauncher.launch("application/json") },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("导入备份文件")
             }
 
+            Spacer(modifier = Modifier.height(24.dp))
+            HorizontalDivider()
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 云同步卡片（默认折叠）
-            Card(
+            Text("WebDAV 云端备份", style = MaterialTheme.typography.titleLarge)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = webdavUrl,
+                onValueChange = { webdavUrl = it },
+                label = { Text("WebDAV 服务器地址") },
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "云同步",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        IconButton(onClick = { cloudSyncExpanded = !cloudSyncExpanded }) {
-                            Icon(
-                                imageVector = if (cloudSyncExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                contentDescription = if (cloudSyncExpanded) "收起" else "展开"
+                placeholder = { Text("https://dav.example.com") }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = webdavUsername,
+                onValueChange = { webdavUsername = it },
+                label = { Text("用户名") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = webdavPassword,
+                onValueChange = { webdavPassword = it },
+                label = { Text("密码") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = webdavPath,
+                onValueChange = { webdavPath = it },
+                label = { Text("远程路径") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    scope.launch {
+                        configDao.saveConfigs(
+                            listOf(
+                                AppConfig("webdav_url", webdavUrl),
+                                AppConfig("webdav_username", webdavUsername),
+                                AppConfig("webdav_password", webdavPassword),
+                                AppConfig("webdav_path", webdavPath)
                             )
-                        }
-                    }
-                    
-                    if (cloudSyncExpanded) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "云同步功能需要自行搭建服务器端点。配置服务器地址后，数据将加密上传到您的服务器。",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        
-                        var cloudServerUrl by remember { mutableStateOf("") }
-                        
-                        OutlinedTextField(
-                            value = cloudServerUrl,
-                            onValueChange = { cloudServerUrl = it },
-                            label = { Text("云服务器地址") },
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("https://your-server.com/api") },
-                            singleLine = true
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            OutlinedButton(
-                                onClick = {
-                                    // TODO: 实现云上传
-                                },
-                                enabled = !isLoading && cloudServerUrl.isNotEmpty(),
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text("上传")
-                            }
-                            OutlinedButton(
-                                onClick = {
-                                    // TODO: 实现云下载
-                                },
-                                enabled = !isLoading && cloudServerUrl.isNotEmpty(),
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text("下载")
-                            }
-                        }
+                        operationResult = "配置保存成功！"
+                        showResultDialog = true
                     }
-                }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("保存配置")
             }
+            Spacer(modifier = Modifier.height(8.dp))
 
-            // 状态显示
-            if (isLoading) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
+            Button(
+                onClick = {
+                    scope.launch {
+                        val config = WebDavManager.WebDavConfig(
+                            baseUrl = webdavUrl,
+                            username = webdavUsername,
+                            password = webdavPassword,
+                            remotePath = webdavPath
+                        )
+
+                        val connected = WebDavManager.testConnection(config)
+                        if (connected) {
+                            operationResult = "WebDAV 连接成功！"
+                        } else {
+                            operationResult = "WebDAV 连接失败，请检查配置"
+                        }
+                        showResultDialog = true
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("测试连接")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = {
+                        scope.launch {
+                            val filePath = DataMigrationUtil.getBackupFilePath(context)
+                            val exportSuccess = BackupManager.exportData(records, allConfigs, filePath)
+                            if (exportSuccess) {
+                                val config = WebDavManager.WebDavConfig(
+                                    baseUrl = webdavUrl,
+                                    username = webdavUsername,
+                                    password = webdavPassword,
+                                    remotePath = webdavPath
+                                )
+                                val fileName = DataMigrationUtil.generateBackupFileName()
+                                val uploadSuccess = WebDavManager.uploadFile(config, filePath, fileName)
+                                operationResult = if (uploadSuccess) "WebDAV 上传成功！" else "WebDAV 上传失败"
+                            } else {
+                                operationResult = "本地备份失败"
+                            }
+                            showResultDialog = true
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
                 ) {
-                    CircularProgressIndicator()
+                    Text("上传到 WebDAV")
                 }
-            }
 
-            backupStatus?.let {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (it.contains("成功")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-                )
-            }
-
-            restoreStatus?.let {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (it.contains("成功")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-                )
+                Button(
+                    onClick = { loadRemoteFiles() },
+                    modifier = Modifier.weight(1f),
+                    enabled = !isLoading
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("从 WebDAV 导入")
+                    }
+                }
             }
         }
+    }
+
+    if (showFilePicker) {
+        AlertDialog(
+            onDismissRequest = { showFilePicker = false },
+            title = { Text("选择备份文件") },
+            text = {
+                Column {
+                    if (remoteFiles.isEmpty()) {
+                        Text("没有找到备份文件")
+                    } else {
+                        remoteFiles.forEach { fileName ->
+                            TextButton(onClick = { importFromWebDav(fileName) }) {
+                                Text(fileName)
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showFilePicker = false }) {
+                    Text("关闭")
+                }
+            }
+        )
+    }
+
+    if (showResultDialog) {
+        AlertDialog(
+            onDismissRequest = { showResultDialog = false },
+            title = { Text("操作结果") },
+            text = { Text(operationResult) },
+            confirmButton = {
+                TextButton(onClick = { showResultDialog = false }) { Text("确定") }
+            }
+        )
     }
 }

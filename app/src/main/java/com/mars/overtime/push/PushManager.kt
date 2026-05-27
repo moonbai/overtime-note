@@ -21,6 +21,8 @@ object PushManager {
             OvertimeType.WORKDAY -> "工作日"
             OvertimeType.RESTDAY -> "休息日"
             OvertimeType.HOLIDAY -> "节假日"
+            OvertimeType.LEAVE_HALF -> "请假(半天)"
+            OvertimeType.LEAVE_FULL -> "请假(全天)"
         }
         val reason = record.remark.takeIf { it.isNotBlank() } ?: "无"
         return """日期: ${record.date}
