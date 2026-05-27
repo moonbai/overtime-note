@@ -25,6 +25,8 @@ object SalaryCalculator {
             OvertimeType.WORKDAY -> configs.find { it.key == KEY_WORKDAY_RATE }?.value?.toDoubleOrNull() ?: DEFAULT_WORKDAY_RATE
             OvertimeType.RESTDAY -> configs.find { it.key == KEY_RESTDAY_RATE }?.value?.toDoubleOrNull() ?: DEFAULT_RESTDAY_RATE
             OvertimeType.HOLIDAY -> configs.find { it.key == KEY_HOLIDAY_RATE }?.value?.toDoubleOrNull() ?: DEFAULT_HOLIDAY_RATE
+            OvertimeType.LEAVE_HALF -> 0.0
+            OvertimeType.LEAVE_FULL -> 0.0
         }
     }
 

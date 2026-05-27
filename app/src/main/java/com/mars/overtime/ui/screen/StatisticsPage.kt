@@ -275,12 +275,16 @@ fun StatisticsPage() {
                                         OvertimeType.WORKDAY -> "工作日"
                                         OvertimeType.RESTDAY -> "休息日"
                                         OvertimeType.HOLIDAY -> "节假日"
+                                        OvertimeType.LEAVE_HALF -> "请假(半天)"
+                                        OvertimeType.LEAVE_FULL -> "请假(全天)"
                                     },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = when (record.type) {
                                         OvertimeType.WORKDAY -> MaterialTheme.colorScheme.primary
                                         OvertimeType.RESTDAY -> MaterialTheme.colorScheme.secondary
                                         OvertimeType.HOLIDAY -> Color(0xFFFF5722)
+                                        OvertimeType.LEAVE_HALF -> Color(0xFF9E9E9E)
+                                        OvertimeType.LEAVE_FULL -> Color(0xFF9E9E9E)
                                     }
                                 )
                             }
@@ -366,5 +370,7 @@ private fun calculateSalary(
         OvertimeType.WORKDAY -> record.duration * hourlyRate * workdayRate
         OvertimeType.RESTDAY -> record.duration * hourlyRate * restdayRate
         OvertimeType.HOLIDAY -> record.duration * hourlyRate * holidayRate
+        OvertimeType.LEAVE_HALF -> 0.0
+        OvertimeType.LEAVE_FULL -> 0.0
     }
 }

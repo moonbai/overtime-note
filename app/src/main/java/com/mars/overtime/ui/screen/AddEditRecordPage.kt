@@ -81,6 +81,8 @@ fun AddEditRecordPage(
                     OvertimeType.WORKDAY -> "工作日"
                     OvertimeType.RESTDAY -> "休息日"
                     OvertimeType.HOLIDAY -> "法定节假日"
+                    OvertimeType.LEAVE_HALF -> "请假(半天)"
+                    OvertimeType.LEAVE_FULL -> "请假(全天)"
                 }
                 // 如果是休息日或节假日，默认开始时间设为8点
                 if (holidayInfoResult == OvertimeType.RESTDAY || holidayInfoResult == OvertimeType.HOLIDAY) {
@@ -215,6 +217,8 @@ fun AddEditRecordPage(
                                     OvertimeType.WORKDAY -> "工作日"
                                     OvertimeType.RESTDAY -> "休息日"
                                     OvertimeType.HOLIDAY -> "法定节假日"
+                                    OvertimeType.LEAVE_HALF -> "请假(半天)"
+                                    OvertimeType.LEAVE_FULL -> "请假(全天)"
                                 }
                             )
                         }

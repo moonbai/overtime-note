@@ -118,6 +118,8 @@ fun OvertimeRecordItem(
         OvertimeType.WORKDAY -> "工作日延时"
         OvertimeType.RESTDAY -> "休息日"
         OvertimeType.HOLIDAY -> "法定节假日"
+        OvertimeType.LEAVE_HALF -> "请假(半天)"
+        OvertimeType.LEAVE_FULL -> "请假(全天)"
     }
     
     val dateStr = record.date
