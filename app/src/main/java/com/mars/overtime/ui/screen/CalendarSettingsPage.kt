@@ -23,9 +23,35 @@ import com.mars.overtime.OvertimeApplication
 import com.mars.overtime.database.OvertimeRecord
 import com.mars.overtime.database.OvertimeType
 import com.mars.overtime.push.CalendarSyncManager
+import com.mars.overtime.util.BackupManager
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+
+private suspend fun triggerAutoBackup(context: Context) {
+    try {
+        val db = OvertimeApplication.database
+        val overtimeDao = db.overtimeDao()
+        val configDao = db.configDao()
+        val records = overtimeDao.getAllRecordsSync()
+        val allConfigs = configDao.getAllConfigsSync()
+        val webdavUrl = allConfigs.find { it.key == "webdav_url" }?.value
+        val webdavUsername = allConfigs.find { it.key == "webdav_username" }?.value
+        val webdavPassword = allConfigs.find { it.key == "webdav_password" }?.value
+        val webdavPath = allConfigs.find { it.key == "webdav_path" }?.value
+        BackupManager.performAutoBackup(
+            context = context,
+            records = records,
+            configs = allConfigs,
+            webdavUrl = webdavUrl,
+            webdavUsername = webdavUsername,
+            webdavPassword = webdavPassword,
+            webdavPath = webdavPath
+        )
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,6 +94,7 @@ fun CalendarSettingsPage(
                         com.mars.overtime.database.AppConfig("calendar_enabled", "true")
                     )
                     syncEnabled = true
+                    triggerAutoBackup(context)
                 }
             }
         }
@@ -201,6 +228,7 @@ fun CalendarSettingsPage(
                                         configDao.saveConfig(
                                             com.mars.overtime.database.AppConfig("calendar_enabled", enabled.toString())
                                         )
+                                        triggerAutoBackup(context)
                                     }
                                 } else {
                                     permissionLauncher.launch(calendarPermissions)

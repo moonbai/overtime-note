@@ -8,16 +8,44 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.mars.overtime.OvertimeApplication
 import com.mars.overtime.database.AppConfig
+import com.mars.overtime.util.BackupManager
 import kotlinx.coroutines.launch
+
+private suspend fun triggerAutoBackup(context: Context) {
+    try {
+        val db = OvertimeApplication.database
+        val overtimeDao = db.overtimeDao()
+        val configDao = db.configDao()
+        val records = overtimeDao.getAllRecordsSync()
+        val allConfigs = configDao.getAllConfigsSync()
+        val webdavUrl = allConfigs.find { it.key == "webdav_url" }?.value
+        val webdavUsername = allConfigs.find { it.key == "webdav_username" }?.value
+        val webdavPassword = allConfigs.find { it.key == "webdav_password" }?.value
+        val webdavPath = allConfigs.find { it.key == "webdav_path" }?.value
+        BackupManager.performAutoBackup(
+            context = context,
+            records = records,
+            configs = allConfigs,
+            webdavUrl = webdavUrl,
+            webdavUsername = webdavUsername,
+            webdavPassword = webdavPassword,
+            webdavPath = webdavPath
+        )
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SalarySettingsPage(
     onNavigateBack: () -> Unit
 ) {
+    val context = LocalContext.current
     val db = OvertimeApplication.database
     val configDao = db.configDao()
 
@@ -145,6 +173,7 @@ fun SalarySettingsPage(
                                 AppConfig("holiday_rate", holidayRate)
                             )
                         )
+                        triggerAutoBackup(context)
                     }
                 },
                 modifier = Modifier.fillMaxWidth()

@@ -14,6 +14,9 @@ interface ConfigDao {
     @Query("SELECT * FROM app_config")
     suspend fun getAllConfigsOnce(): List<AppConfig>
 
+    @Query("SELECT * FROM app_config")
+    suspend fun getAllConfigsSync(): List<AppConfig> = getAllConfigsOnce()
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveConfig(config: AppConfig)
 

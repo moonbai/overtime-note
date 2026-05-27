@@ -8,6 +8,12 @@ interface OvertimeDao {
     @Query("SELECT * FROM overtime_record ORDER BY date DESC, createTime DESC")
     fun getAllRecords(): Flow<List<OvertimeRecord>>
 
+    @Query("SELECT * FROM overtime_record ORDER BY date DESC, createTime DESC")
+    suspend fun getAllRecordsOnce(): List<OvertimeRecord>
+
+    @Query("SELECT * FROM overtime_record ORDER BY date DESC, createTime DESC")
+    suspend fun getAllRecordsSync(): List<OvertimeRecord> = getAllRecordsOnce()
+
     @Query("SELECT * FROM overtime_record WHERE id = :id")
     suspend fun getRecordById(id: Long): OvertimeRecord?
 

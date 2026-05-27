@@ -21,6 +21,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import com.mars.overtime.ui.screen.*
 import com.mars.overtime.ui.theme.BottomBarStyle
 import com.mars.overtime.ui.theme.ThemeManager
@@ -117,16 +119,28 @@ fun MainNav() {
                 bottom = if (isMainScreen) paddingValues.calculateBottomPadding() else 0.dp
             )
         ) {
-            composable(BottomNavScreen.Statistics.route) {
+            composable(
+                BottomNavScreen.Statistics.route,
+                enterTransition = { fadeIn(animationSpec = tween(250)) },
+                exitTransition = { fadeOut(animationSpec = tween(250)) }
+            ) {
                 currentBottomNavScreen = BottomNavScreen.Statistics
                 StatisticsPage()
             }
 
-            composable(BottomNavScreen.Home.route) {
+            composable(
+                BottomNavScreen.Home.route,
+                enterTransition = { fadeIn(animationSpec = tween(250)) },
+                exitTransition = { fadeOut(animationSpec = tween(250)) }
+            ) {
                 currentBottomNavScreen = BottomNavScreen.Home
                 HomePage(
-                    onNavigateToAddEdit = {
-                        navController.navigate("add_edit_record")
+                    onNavigateToAddEdit = { recordId ->
+                        if (recordId != null) {
+                            navController.navigate("add_edit_record?recordId=$recordId")
+                        } else {
+                            navController.navigate("add_edit_record")
+                        }
                     },
                     onNavigateToSettings = {
                         navController.navigate(BottomNavScreen.Settings.route) {
@@ -139,7 +153,11 @@ fun MainNav() {
                 )
             }
 
-            composable(BottomNavScreen.Settings.route) {
+            composable(
+                BottomNavScreen.Settings.route,
+                enterTransition = { fadeIn(animationSpec = tween(250)) },
+                exitTransition = { fadeOut(animationSpec = tween(250)) }
+            ) {
                 currentBottomNavScreen = BottomNavScreen.Settings
                 SettingsPage(
                     onNavigateToAppearanceSettings = {
@@ -166,49 +184,101 @@ fun MainNav() {
                 )
             }
 
-            composable("add_edit_record") {
-                AddEditRecordPage(onNavigateBack = {
-                    navController.popBackStack()
-                })
+            composable(
+                "add_edit_record?recordId={recordId}",
+                enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)) },
+                exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(300)) + fadeOut(animationSpec = tween(300)) },
+                popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)) },
+                popExitTransition = { slideOutHorizontally(targetOffsetX = { -it }, animationSpec = tween(300)) + fadeOut(animationSpec = tween(300)) }
+            ) { backStackEntry ->
+                val recordId = backStackEntry.arguments?.getString("recordId")?.toLongOrNull()
+                AddEditRecordPage(
+                    recordId = recordId,
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
             }
 
-            composable("appearance_settings") {
+            composable(
+                "appearance_settings",
+                enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)) },
+                exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(300)) + fadeOut(animationSpec = tween(300)) },
+                popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)) },
+                popExitTransition = { slideOutHorizontally(targetOffsetX = { -it }, animationSpec = tween(300)) + fadeOut(animationSpec = tween(300)) }
+            ) {
                 AppearanceSettingsPage(onNavigateBack = {
                     navController.popBackStack()
                 })
             }
 
-            composable("push_settings") {
+            composable(
+                "push_settings",
+                enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)) },
+                exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(300)) + fadeOut(animationSpec = tween(300)) },
+                popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)) },
+                popExitTransition = { slideOutHorizontally(targetOffsetX = { -it }, animationSpec = tween(300)) + fadeOut(animationSpec = tween(300)) }
+            ) {
                 PushSettingsPage(onNavigateBack = {
                     navController.popBackStack()
                 })
             }
 
-            composable("salary_settings") {
+            composable(
+                "salary_settings",
+                enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)) },
+                exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(300)) + fadeOut(animationSpec = tween(300)) },
+                popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)) },
+                popExitTransition = { slideOutHorizontally(targetOffsetX = { -it }, animationSpec = tween(300)) + fadeOut(animationSpec = tween(300)) }
+            ) {
                 SalarySettingsPage(onNavigateBack = {
                     navController.popBackStack()
                 })
             }
 
-            composable("calendar_settings") {
+            composable(
+                "calendar_settings",
+                enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)) },
+                exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(300)) + fadeOut(animationSpec = tween(300)) },
+                popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)) },
+                popExitTransition = { slideOutHorizontally(targetOffsetX = { -it }, animationSpec = tween(300)) + fadeOut(animationSpec = tween(300)) }
+            ) {
                 CalendarSettingsPage(onNavigateBack = {
                     navController.popBackStack()
                 })
             }
 
-            composable("backup_settings") {
+            composable(
+                "backup_settings",
+                enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)) },
+                exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(300)) + fadeOut(animationSpec = tween(300)) },
+                popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)) },
+                popExitTransition = { slideOutHorizontally(targetOffsetX = { -it }, animationSpec = tween(300)) + fadeOut(animationSpec = tween(300)) }
+            ) {
                 BackupSettingsPage(onNavigateBack = {
                     navController.popBackStack()
                 })
             }
 
-            composable("holiday_settings") {
+            composable(
+                "holiday_settings",
+                enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)) },
+                exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(300)) + fadeOut(animationSpec = tween(300)) },
+                popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)) },
+                popExitTransition = { slideOutHorizontally(targetOffsetX = { -it }, animationSpec = tween(300)) + fadeOut(animationSpec = tween(300)) }
+            ) {
                 HolidaySettingsPage(onNavigateBack = {
                     navController.popBackStack()
                 })
             }
 
-            composable("about") {
+            composable(
+                "about",
+                enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)) },
+                exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(300)) + fadeOut(animationSpec = tween(300)) },
+                popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)) },
+                popExitTransition = { slideOutHorizontally(targetOffsetX = { -it }, animationSpec = tween(300)) + fadeOut(animationSpec = tween(300)) }
+            ) {
                 AboutPage(onNavigateBack = {
                     navController.popBackStack()
                 })

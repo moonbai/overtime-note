@@ -27,6 +27,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditRecordPage(
+    recordId: Long? = null,
     onNavigateBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -38,15 +39,15 @@ fun AddEditRecordPage(
 
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.CHINA)
     dateFormat.timeZone = TimeZone.getTimeZone("GMT+8")
-    
+
     val calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"), Locale.CHINA)
     val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
     val currentMinute = calendar.get(Calendar.MINUTE)
-    
+
     val nearestHour = if (currentMinute < 30) currentHour else currentHour + 1
     val defaultEndTime = String.format(Locale.CHINA, "%02d:%02d", nearestHour, if (currentMinute < 30) 30 else 0)
 
-    var selectedDate by remember { 
+    var selectedDate by remember {
         mutableStateOf(
             Calendar.getInstance(TimeZone.getTimeZone("GMT+8"), Locale.CHINA).let { cal ->
                 cal.set(Calendar.HOUR_OF_DAY, 12)
@@ -70,8 +71,35 @@ fun AddEditRecordPage(
     var showDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
+    var isEditing by remember { mutableStateOf(false) }
+    var editingRecordId by remember { mutableStateOf(0L) }
 
     val allConfigs by configDao.getAllConfigs().collectAsState(initial = emptyList())
+
+    // 加载现有记录（如果是编辑模式）
+    LaunchedEffect(Unit) {
+        recordId?.let { id ->
+            val record = overtimeDao.getRecordById(id)
+            record?.let { r ->
+                isEditing = true
+                editingRecordId = r.id
+                selectedDate = r.date
+                selectedStartTime = r.startTime
+                selectedEndTime = r.endTime
+                duration = r.duration
+                remark = r.remark
+                money = r.money
+
+                if (r.type == OvertimeType.LEAVE_HALF || r.type == OvertimeType.LEAVE_FULL) {
+                    isLeave = true
+                    selectedLeaveType = r.type
+                    duration = if (r.type == OvertimeType.LEAVE_HALF) 4.0 else 8.0
+                } else {
+                    selectedType = r.type
+                }
+            }
+        }
+    }
 
     fun updateOvertimeType(dateStr: String) {
         isLoading = true
@@ -103,9 +131,14 @@ fun AddEditRecordPage(
         updateOvertimeType(selectedDate)
     }
 
-    LaunchedEffect(selectedStartTime, selectedEndTime, selectedType, isLeave, allConfigs) {
-        duration = SalaryCalculator.calculateDuration(selectedStartTime, selectedEndTime)
-        money = if (isLeave) 0.0 else SalaryCalculator.calculateMoneyWithConfig(allConfigs, selectedType, duration)
+    LaunchedEffect(selectedStartTime, selectedEndTime, selectedType, isLeave, allConfigs, selectedLeaveType) {
+        if (isLeave) {
+            duration = if (selectedLeaveType == OvertimeType.LEAVE_HALF) 4.0 else 8.0
+            money = 0.0
+        } else {
+            duration = SalaryCalculator.calculateDuration(selectedStartTime, selectedEndTime)
+            money = SalaryCalculator.calculateMoneyWithConfig(allConfigs, selectedType, duration)
+        }
     }
 
     fun parseDateToLocalCalendar(dateStr: String): Calendar {
@@ -128,7 +161,7 @@ fun AddEditRecordPage(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("新建加班记录") },
+                title = { Text(if (isEditing) "编辑加班记录" else "新建加班记录") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "返回")
@@ -190,49 +223,52 @@ fun AddEditRecordPage(
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                OutlinedButton(
-                    onClick = { showStartTimePicker = true },
-                    modifier = Modifier.weight(1f)
+            // 只有在非请假模式下才显示时间选择
+            if (!isLeave) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("开始: $selectedStartTime")
+                    OutlinedButton(
+                        onClick = { showStartTimePicker = true },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("开始: $selectedStartTime")
+                    }
+                    OutlinedButton(
+                        onClick = { showEndTimePicker = true },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("结束: $selectedEndTime")
+                    }
                 }
-                OutlinedButton(
-                    onClick = { showEndTimePicker = true },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("结束: $selectedEndTime")
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Text("加班时长: ${"%.2f".format(duration)} 小时", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
+                Text("加班时长: ${"%.2f".format(duration)} 小时", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
 
-            Text("加班类型:", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf(OvertimeType.WORKDAY, OvertimeType.RESTDAY, OvertimeType.HOLIDAY).forEach { type ->
-                    FilterChip(
-                        selected = selectedType == type,
-                        onClick = { selectedType = type },
-                        label = {
-                            Text(
-                                when (type) {
-                                    OvertimeType.WORKDAY -> "工作日"
-                                    OvertimeType.RESTDAY -> "休息日"
-                                    OvertimeType.HOLIDAY -> "法定节假日"
-                                    else -> ""
-                                }
-                            )
-                        }
-                    )
+                Text("加班类型:", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(OvertimeType.WORKDAY, OvertimeType.RESTDAY, OvertimeType.HOLIDAY).forEach { type ->
+                        FilterChip(
+                            selected = selectedType == type,
+                            onClick = { selectedType = type },
+                            label = {
+                                Text(
+                                    when (type) {
+                                        OvertimeType.WORKDAY -> "工作日"
+                                        OvertimeType.RESTDAY -> "休息日"
+                                        OvertimeType.HOLIDAY -> "法定节假日"
+                                        else -> ""
+                                    }
+                                )
+                            }
+                        )
+                    }
                 }
+                Spacer(modifier = Modifier.height(16.dp))
             }
-            Spacer(modifier = Modifier.height(16.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -259,6 +295,11 @@ fun AddEditRecordPage(
                         label = { Text("请假(全天)") }
                     )
                 }
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "请假时长: ${if (selectedLeaveType == OvertimeType.LEAVE_HALF) "4.0" else "8.0"} 小时",
+                    style = MaterialTheme.typography.bodyLarge
+                )
             }
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -272,7 +313,7 @@ fun AddEditRecordPage(
             OutlinedTextField(
                 value = remark,
                 onValueChange = { remark = it },
-                label = { Text("加班事由") },
+                label = { Text(if (isLeave) "请假事由" else "加班事由") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3
             )
@@ -281,59 +322,92 @@ fun AddEditRecordPage(
             Button(
                 onClick = {
                     scope.launch {
-                        val record = OvertimeRecord(
-                            id = 0,
-                            date = selectedDate,
-                            startTime = selectedStartTime,
-                            endTime = selectedEndTime,
-                            duration = duration,
-                            type = if (isLeave) selectedLeaveType else selectedType,
-                            money = if (isLeave) 0.0 else money,
-                            remark = remark,
-                            createTime = System.currentTimeMillis()
-                        )
-                        overtimeDao.insertRecord(record)
+                        val record = if (isLeave) {
+                            OvertimeRecord(
+                                id = if (isEditing) editingRecordId else 0,
+                                date = selectedDate,
+                                startTime = "",
+                                endTime = "",
+                                duration = if (selectedLeaveType == OvertimeType.LEAVE_HALF) 4.0 else 8.0,
+                                type = selectedLeaveType,
+                                money = 0.0,
+                                remark = remark,
+                                createTime = if (isEditing) {
+                                    // 保持原来的创建时间
+                                    val existingRecord = overtimeDao.getRecordById(editingRecordId)
+                                    existingRecord?.createTime ?: System.currentTimeMillis()
+                                } else {
+                                    System.currentTimeMillis()
+                                }
+                            )
+                        } else {
+                            OvertimeRecord(
+                                id = if (isEditing) editingRecordId else 0,
+                                date = selectedDate,
+                                startTime = selectedStartTime,
+                                endTime = selectedEndTime,
+                                duration = duration,
+                                type = selectedType,
+                                money = money,
+                                remark = remark,
+                                createTime = if (isEditing) {
+                                    val existingRecord = overtimeDao.getRecordById(editingRecordId)
+                                    existingRecord?.createTime ?: System.currentTimeMillis()
+                                } else {
+                                    System.currentTimeMillis()
+                                }
+                            )
+                        }
 
-                        val configs = configDao.getAllConfigsOnce()
-                        val dingUrl = configs.find { it.key == "push_dingtalk" }?.value
-                        val dingSecret = configs.find { it.key == "push_dingtalk_secret" }?.value ?: ""
-                        val feishuUrl = configs.find { it.key == "push_feishu" }?.value
-                        val feishuSecret = configs.find { it.key == "push_feishu_secret" }?.value ?: ""
-                        val wecomUrl = configs.find { it.key == "push_wecom" }?.value
-                        val wecomSecret = configs.find { it.key == "push_wecom_secret" }?.value ?: ""
-                        val wxUrl = configs.find { it.key == "push_wxpusher" }?.value
-                        val telegramUrl = configs.find { it.key == "push_telegram" }?.value
-                        val telegramChatId = configs.find { it.key == "push_telegram_chatid" }?.value ?: ""
-                        val discordUrl = configs.find { it.key == "push_discord" }?.value
-                        val discordUsername = configs.find { it.key == "push_discord_username" }?.value ?: ""
-                        val customUrl = configs.find { it.key == "push_custom" }?.value
-                        val customHeaders = configs.find { it.key == "push_custom_headers" }?.value ?: ""
-                        val calendarEnabled = configs.find { it.key == "calendar_enabled" }?.value == "true"
+                        if (isEditing) {
+                            overtimeDao.updateRecord(record)
+                        } else {
+                            overtimeDao.insertRecord(record)
+                        }
 
-                        if (!dingUrl.isNullOrBlank()) {
-                            PushManager.sendDingTalk(dingUrl, dingSecret, record)
-                        }
-                        if (!feishuUrl.isNullOrBlank()) {
-                            PushManager.sendFeishu(feishuUrl, feishuSecret, record)
-                        }
-                        if (!wecomUrl.isNullOrBlank()) {
-                            PushManager.sendWeCom(wecomUrl, wecomSecret, record)
-                        }
-                        if (!wxUrl.isNullOrBlank()) {
-                            PushManager.sendWxPusher(wxUrl, record)
-                        }
-                        if (!telegramUrl.isNullOrBlank() && telegramChatId.isNotBlank()) {
-                            PushManager.sendTelegram(telegramUrl, telegramChatId, record)
-                        }
-                        if (!discordUrl.isNullOrBlank()) {
-                            PushManager.sendDiscord(discordUrl, discordUsername, record)
-                        }
-                        if (!customUrl.isNullOrBlank()) {
-                            PushManager.sendCustom(customUrl, customHeaders, record)
-                        }
-                        
-                        if (calendarEnabled) {
-                            CalendarSyncManager.addEvent(context, record)
+                        // 如果不是编辑模式，才发送通知和同步日历
+                        if (!isEditing) {
+                            val configs = configDao.getAllConfigsOnce()
+                            val dingUrl = configs.find { it.key == "push_dingtalk" }?.value
+                            val dingSecret = configs.find { it.key == "push_dingtalk_secret" }?.value ?: ""
+                            val feishuUrl = configs.find { it.key == "push_feishu" }?.value
+                            val feishuSecret = configs.find { it.key == "push_feishu_secret" }?.value ?: ""
+                            val wecomUrl = configs.find { it.key == "push_wecom" }?.value
+                            val wecomSecret = configs.find { it.key == "push_wecom_secret" }?.value ?: ""
+                            val wxUrl = configs.find { it.key == "push_wxpusher" }?.value
+                            val telegramUrl = configs.find { it.key == "push_telegram" }?.value
+                            val telegramChatId = configs.find { it.key == "push_telegram_chatid" }?.value ?: ""
+                            val discordUrl = configs.find { it.key == "push_discord" }?.value
+                            val discordUsername = configs.find { it.key == "push_discord_username" }?.value ?: ""
+                            val customUrl = configs.find { it.key == "push_custom" }?.value
+                            val customHeaders = configs.find { it.key == "push_custom_headers" }?.value ?: ""
+                            val calendarEnabled = configs.find { it.key == "calendar_enabled" }?.value == "true"
+
+                            if (!dingUrl.isNullOrBlank()) {
+                                PushManager.sendDingTalk(dingUrl, dingSecret, record)
+                            }
+                            if (!feishuUrl.isNullOrBlank()) {
+                                PushManager.sendFeishu(feishuUrl, feishuSecret, record)
+                            }
+                            if (!wecomUrl.isNullOrBlank()) {
+                                PushManager.sendWeCom(wecomUrl, wecomSecret, record)
+                            }
+                            if (!wxUrl.isNullOrBlank()) {
+                                PushManager.sendWxPusher(wxUrl, record)
+                            }
+                            if (!telegramUrl.isNullOrBlank() && telegramChatId.isNotBlank()) {
+                                PushManager.sendTelegram(telegramUrl, telegramChatId, record)
+                            }
+                            if (!discordUrl.isNullOrBlank()) {
+                                PushManager.sendDiscord(discordUrl, discordUsername, record)
+                            }
+                            if (!customUrl.isNullOrBlank()) {
+                                PushManager.sendCustom(customUrl, customHeaders, record)
+                            }
+
+                            if (calendarEnabled) {
+                                CalendarSyncManager.addEvent(context, record)
+                            }
                         }
 
                         onNavigateBack()
@@ -345,7 +419,7 @@ fun AddEditRecordPage(
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
             ) {
                 Text(
-                    text = "保存",
+                    text = if (isEditing) "更新" else "保存",
                     style = MaterialTheme.typography.titleMedium
                 )
             }
@@ -355,11 +429,11 @@ fun AddEditRecordPage(
     if (showDatePicker) {
         val initialCalendar = parseDateToLocalCalendar(selectedDate)
         val initialMillis = initialCalendar.timeInMillis
-        
+
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = initialMillis
         )
-        
+
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
@@ -369,11 +443,9 @@ fun AddEditRecordPage(
                         if (selectedMillis != null) {
                             val cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+8"), Locale.CHINA)
                             cal.timeInMillis = selectedMillis
-                            // 确保时区正确，先获取选中日期的年月日
                             val year = cal.get(Calendar.YEAR)
                             val month = cal.get(Calendar.MONTH)
                             val day = cal.get(Calendar.DAY_OF_MONTH)
-                            // 重新设置为中午12点，避免时区偏移
                             cal.clear()
                             cal.set(Calendar.YEAR, year)
                             cal.set(Calendar.MONTH, month)
@@ -439,7 +511,7 @@ fun TimePickerDialogWrapper(
         initialMinute = initialMinute,
         is24Hour = true
     )
-    
+
     Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier.wrapContentSize(),

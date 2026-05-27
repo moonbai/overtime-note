@@ -22,7 +22,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomePage(
-    onNavigateToAddEdit: () -> Unit,
+    onNavigateToAddEdit: (Long?) -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
     val db = OvertimeApplication.database
@@ -37,7 +37,7 @@ fun HomePage(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("加班记") },
+                title = { Text("首页") },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
@@ -45,7 +45,7 @@ fun HomePage(
         },
         floatingActionButton = {
             FilledIconButton(
-                onClick = onNavigateToAddEdit,
+                onClick = { onNavigateToAddEdit(null) },
                 modifier = Modifier.size(48.dp),
                 colors = IconButtonDefaults.filledIconButtonColors(
                     containerColor = MaterialTheme.colorScheme.primary
@@ -80,7 +80,7 @@ fun HomePage(
                 items(records) { record ->
                     OvertimeRecordItem(
                         record = record,
-                        onEdit = { onNavigateToAddEdit() },
+                        onEdit = { onNavigateToAddEdit(record.id) },
                         onDelete = {
                             recordToDelete = record
                             showDeleteDialog = true

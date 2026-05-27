@@ -38,6 +38,8 @@ fun BackupSettingsPage(
     var webdavUsername by remember { mutableStateOf("") }
     var webdavPassword by remember { mutableStateOf("") }
     var webdavPath by remember { mutableStateOf("/overtime_backup/") }
+    var autoBackupEnabled by remember { mutableStateOf(false) }
+    var autoBackupLocation by remember { mutableStateOf("local") }
 
     var operationResult by remember { mutableStateOf("") }
     var showResultDialog by remember { mutableStateOf(false) }
@@ -53,6 +55,8 @@ fun BackupSettingsPage(
         webdavUsername = allConfigs.find { it.key == "webdav_username" }?.value ?: ""
         webdavPassword = allConfigs.find { it.key == "webdav_password" }?.value ?: ""
         webdavPath = allConfigs.find { it.key == "webdav_path" }?.value ?: "/overtime_backup/"
+        autoBackupEnabled = allConfigs.find { it.key == "auto_backup_enabled" }?.value?.toBoolean() ?: false
+        autoBackupLocation = allConfigs.find { it.key == "auto_backup_location" }?.value ?: "local"
     }
 
     val pickFileLauncher = rememberLauncherForActivityResult(
@@ -174,6 +178,81 @@ fun BackupSettingsPage(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("自动备份", style = MaterialTheme.typography.titleLarge)
+                        Switch(
+                            checked = autoBackupEnabled,
+                            onCheckedChange = {
+                                autoBackupEnabled = it
+                                scope.launch {
+                                    configDao.saveConfigs(
+                                        listOf(
+                                            AppConfig("auto_backup_enabled", it.toString()),
+                                            AppConfig("auto_backup_location", autoBackupLocation)
+                                        )
+                                    )
+                                }
+                            }
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "开启后修改配置会自动备份",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    if (autoBackupEnabled) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("备份位置", style = MaterialTheme.typography.titleMedium)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            FilterChip(
+                                selected = autoBackupLocation == "local",
+                                onClick = {
+                                    autoBackupLocation = "local"
+                                    scope.launch {
+                                        configDao.saveConfig(
+                                            AppConfig("auto_backup_location", "local")
+                                        )
+                                    }
+                                },
+                                label = { Text("本地") },
+                                modifier = Modifier.weight(1f)
+                            )
+                            FilterChip(
+                                selected = autoBackupLocation == "cloud",
+                                onClick = {
+                                    autoBackupLocation = "cloud"
+                                    scope.launch {
+                                        configDao.saveConfig(
+                                            AppConfig("auto_backup_location", "cloud")
+                                        )
+                                    }
+                                },
+                                label = { Text("云端") },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
             Text("本地备份", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(8.dp))
 

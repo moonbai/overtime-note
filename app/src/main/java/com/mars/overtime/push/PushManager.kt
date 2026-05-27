@@ -2,6 +2,7 @@ package com.mars.overtime.push
 
 import android.util.Base64
 import android.util.Log
+import com.mars.overtime.database.AppConfig
 import com.mars.overtime.database.OvertimeRecord
 import com.mars.overtime.database.OvertimeType
 import kotlinx.coroutines.Dispatchers
@@ -258,5 +259,55 @@ object PushManager {
             .replace("\n", "\\n")
             .replace("\r", "\\r")
             .replace("\t", "\\t")
+    }
+    
+    /**
+     * 根据配置推送到当前选择的单个渠道
+     */
+    suspend fun sendToSelectedChannel(configs: List<AppConfig>, record: OvertimeRecord): Boolean = withContext(Dispatchers.IO) {
+        val pushEnabled = configs.find { it.key == "push_enabled" }?.value?.toBoolean() ?: false
+        if (!pushEnabled) {
+            return@withContext false
+        }
+        
+        val selectedChannel = configs.find { it.key == "push_channel" }?.value ?: "dingtalk"
+        
+        when (selectedChannel) {
+            "dingtalk" -> {
+                val url = configs.find { it.key == "push_dingtalk" }?.value ?: return@withContext false
+                val secret = configs.find { it.key == "push_dingtalk_secret" }?.value ?: ""
+                sendDingTalk(url, secret, record)
+            }
+            "feishu" -> {
+                val url = configs.find { it.key == "push_feishu" }?.value ?: return@withContext false
+                val secret = configs.find { it.key == "push_feishu_secret" }?.value ?: ""
+                sendFeishu(url, secret, record)
+            }
+            "wecom" -> {
+                val url = configs.find { it.key == "push_wecom" }?.value ?: return@withContext false
+                val secret = configs.find { it.key == "push_wecom_secret" }?.value ?: ""
+                sendWeCom(url, secret, record)
+            }
+            "wxpusher" -> {
+                val url = configs.find { it.key == "push_wxpusher" }?.value ?: return@withContext false
+                sendWxPusher(url, record)
+            }
+            "telegram" -> {
+                val url = configs.find { it.key == "push_telegram" }?.value ?: return@withContext false
+                val chatId = configs.find { it.key == "push_telegram_chatid" }?.value ?: return@withContext false
+                sendTelegram(url, chatId, record)
+            }
+            "discord" -> {
+                val url = configs.find { it.key == "push_discord" }?.value ?: return@withContext false
+                val username = configs.find { it.key == "push_discord_username" }?.value ?: ""
+                sendDiscord(url, username, record)
+            }
+            "custom" -> {
+                val url = configs.find { it.key == "push_custom" }?.value ?: return@withContext false
+                val headers = configs.find { it.key == "push_custom_headers" }?.value ?: ""
+                sendCustom(url, headers, record)
+            }
+            else -> false
+        }
     }
 }

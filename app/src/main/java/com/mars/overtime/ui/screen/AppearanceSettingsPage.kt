@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 fun AppearanceSettingsPage(
     onNavigateBack: () -> Unit
 ) {
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     val selectedThemeMode by ThemeManager.themeMode.collectAsState()
@@ -109,7 +110,7 @@ fun AppearanceSettingsPage(
                     icon = Icons.Default.Palette,
                     selected = selectedThemeMode == ThemeMode.SYSTEM,
                     onClick = {
-                        scope.launch { saveThemeMode(ThemeMode.SYSTEM) }
+                        scope.launch { saveThemeMode(context, ThemeMode.SYSTEM) }
                     },
                     modifier = Modifier.weight(1f)
                 )
@@ -118,7 +119,7 @@ fun AppearanceSettingsPage(
                     icon = Icons.Default.LightMode,
                     selected = selectedThemeMode == ThemeMode.LIGHT,
                     onClick = {
-                        scope.launch { saveThemeMode(ThemeMode.LIGHT) }
+                        scope.launch { saveThemeMode(context, ThemeMode.LIGHT) }
                     },
                     modifier = Modifier.weight(1f)
                 )
@@ -127,7 +128,7 @@ fun AppearanceSettingsPage(
                     icon = Icons.Default.DarkMode,
                     selected = selectedThemeMode == ThemeMode.DARK,
                     onClick = {
-                        scope.launch { saveThemeMode(ThemeMode.DARK) }
+                        scope.launch { saveThemeMode(context, ThemeMode.DARK) }
                     },
                     modifier = Modifier.weight(1f)
                 )
@@ -154,7 +155,7 @@ fun AppearanceSettingsPage(
                 Switch(
                     checked = dynamicColor,
                     onCheckedChange = { enabled ->
-                        scope.launch { saveDynamicColor(enabled) }
+                        scope.launch { saveDynamicColor(context, enabled) }
                     }
                 )
             }
@@ -182,7 +183,7 @@ fun AppearanceSettingsPage(
                         color = color,
                         selected = selectedAccentColor == color,
                         onClick = {
-                            scope.launch { saveAccentColor(color) }
+                            scope.launch { saveAccentColor(context, color) }
                         }
                     )
                 }
@@ -206,7 +207,7 @@ fun AppearanceSettingsPage(
                         title = ThemeManager.getFontScaleName(scale),
                         selected = fontScale == scale,
                         onClick = {
-                            scope.launch { saveFontScale(scale) }
+                            scope.launch { saveFontScale(context, scale) }
                         },
                         modifier = Modifier.weight(1f)
                     )
@@ -236,7 +237,7 @@ fun AppearanceSettingsPage(
                         },
                         selected = bottomBarStyle == style,
                         onClick = {
-                            scope.launch { saveBottomBarStyle(style) }
+                            scope.launch { saveBottomBarStyle(context, style) }
                         },
                         modifier = Modifier.weight(1f)
                     )
@@ -266,7 +267,7 @@ fun AppearanceSettingsPage(
                     onCheckedChange = { enabled ->
                         scope.launch {
                             try {
-                                saveQuickReportMode(enabled)
+                                saveQuickReportMode(context, enabled)
                             } catch (e: Exception) {
                                 e.printStackTrace()
                             }

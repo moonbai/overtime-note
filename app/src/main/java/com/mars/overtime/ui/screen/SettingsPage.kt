@@ -38,13 +38,13 @@ fun SettingsPage(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
         ) {
-            SettingsItem("外观设置", "主题、强调色、字体大小", onNavigateToAppearanceSettings)
-            SettingsItem("推送设置", "钉钉、飞书、WxPusher、自定义推送", onNavigateToPushSettings)
-            SettingsItem("薪资设置", "基础薪资、加班倍率", onNavigateToSalarySettings)
-            SettingsItem("日历同步", "安卓日历同步设置", onNavigateToCalendarSettings)
-            SettingsItem("备份恢复", "本地备份、WebDAV云端备份", onNavigateToBackupSettings)
-            SettingsItem("节假日管理", "更新节假日规则", onNavigateToHolidaySettings)
-            SettingsItem("关于", "版本信息、作者", onNavigateToAbout)
+            SettingsItem("外观设置", "个性化主题与界面样式", onNavigateToAppearanceSettings)
+            SettingsItem("推送设置", "配置加班记录推送通知", onNavigateToPushSettings)
+            SettingsItem("薪资设置", "加班薪资与倍率计算", onNavigateToSalarySettings)
+            SettingsItem("日历同步", "添加加班记录到日历", onNavigateToCalendarSettings)
+            SettingsItem("备份恢复", "数据备份与云端同步", onNavigateToBackupSettings)
+            SettingsItem("节假日管理", "自定义节假日规则", onNavigateToHolidaySettings)
+            SettingsItem("关于", "版本信息与使用帮助", onNavigateToAbout)
         }
     }
 }

@@ -59,7 +59,11 @@ fun StatisticsPage() {
 
     val hourlyRate = if (baseSalary > 0) baseSalary / 21.75 / 8 else 0.0
 
-    val totalHours = records.sumOf { it.duration }
+    // 计算请假扣除的休息日时长
+    val leaveHalfDayRecords = records.filter { it.type == OvertimeType.LEAVE_HALF }
+    val leaveFullDayRecords = records.filter { it.type == OvertimeType.LEAVE_FULL }
+    val leaveDeductionHours = (leaveHalfDayRecords.size * 4.0) + (leaveFullDayRecords.size * 8.0)
+
     val workdayRecords = records.filter { it.type == OvertimeType.WORKDAY }
     val restdayRecords = records.filter { it.type == OvertimeType.RESTDAY }
     val holidayRecords = records.filter { it.type == OvertimeType.HOLIDAY }
@@ -68,8 +72,13 @@ fun StatisticsPage() {
     val restdayHours = restdayRecords.sumOf { it.duration }
     val holidayHours = holidayRecords.sumOf { it.duration }
 
+    // 计算扣除请假后的有效休息日时长
+    val adjustedRestdayHours = (restdayHours - leaveDeductionHours).coerceAtLeast(0.0)
+
+    // 计算总时长和薪资（使用调整后的休息日时长）
+    val totalHours = workdayHours + adjustedRestdayHours + holidayHours
     val workdaySalary = workdayHours * hourlyRate * workdayRate
-    val restdaySalary = restdayHours * hourlyRate * restdayRate
+    val restdaySalary = adjustedRestdayHours * hourlyRate * restdayRate
     val holidaySalary = holidayHours * hourlyRate * holidayRate
     val totalSalary = workdaySalary + restdaySalary + holidaySalary
 
@@ -202,7 +211,7 @@ fun StatisticsPage() {
                             )
                             StatItem(
                                 title = "休息日",
-                                hours = restdayHours,
+                                hours = adjustedRestdayHours,
                                 salary = restdaySalary,
                                 color = MaterialTheme.colorScheme.secondary
                             )
@@ -212,6 +221,51 @@ fun StatisticsPage() {
                                 salary = holidaySalary,
                                 color = Color(0xFFFF5722)
                             )
+                        }
+
+                        // 如果有请假记录，显示扣除说明
+                        if (leaveDeductionHours > 0) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer
+                                )
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(12.dp)
+                                ) {
+                                    Text(
+                                        text = "请假扣除说明",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onErrorContainer
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = buildString {
+                                            append("本月请假 ")
+                                            if (leaveHalfDayRecords.isNotEmpty()) {
+                                                append("${leaveHalfDayRecords.size} 个半天")
+                                            }
+                                            if (leaveHalfDayRecords.isNotEmpty() && leaveFullDayRecords.isNotEmpty()) {
+                                                append("、")
+                                            }
+                                            if (leaveFullDayRecords.isNotEmpty()) {
+                                                append("${leaveFullDayRecords.size} 个全天")
+                                            }
+                                            append("\n")
+                                            append("扣除休息日加班时长：${leaveDeductionHours} 小时")
+                                            if (restdayHours > 0) {
+                                                append("\n")
+                                                append("原休息日加班：${String.format("%.1f", restdayHours)} 小时 → 调整后：${String.format("%.1f", adjustedRestdayHours)} 小时")
+                                            }
+                                        },
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onErrorContainer
+                                    )
+                                }
+                            }
                         }
                     }
                 }

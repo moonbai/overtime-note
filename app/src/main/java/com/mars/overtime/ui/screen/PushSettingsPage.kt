@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mars.overtime.OvertimeApplication
@@ -17,15 +18,42 @@ import com.mars.overtime.database.AppConfig
 import com.mars.overtime.database.OvertimeRecord
 import com.mars.overtime.database.OvertimeType
 import com.mars.overtime.push.PushManager
+import com.mars.overtime.util.BackupManager
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+
+private suspend fun triggerAutoBackup(context: Context) {
+    try {
+        val db = OvertimeApplication.database
+        val overtimeDao = db.overtimeDao()
+        val configDao = db.configDao()
+        val records = overtimeDao.getAllRecordsSync()
+        val allConfigs = configDao.getAllConfigsSync()
+        val webdavUrl = allConfigs.find { it.key == "webdav_url" }?.value
+        val webdavUsername = allConfigs.find { it.key == "webdav_username" }?.value
+        val webdavPassword = allConfigs.find { it.key == "webdav_password" }?.value
+        val webdavPath = allConfigs.find { it.key == "webdav_path" }?.value
+        BackupManager.performAutoBackup(
+            context = context,
+            records = records,
+            configs = allConfigs,
+            webdavUrl = webdavUrl,
+            webdavUsername = webdavUsername,
+            webdavPassword = webdavPassword,
+            webdavPath = webdavPath
+        )
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PushSettingsPage(
     onNavigateBack: () -> Unit
 ) {
+    val context = LocalContext.current
     val db = OvertimeApplication.database
     val configDao = db.configDao()
 
@@ -55,6 +83,17 @@ fun PushSettingsPage(
     val channels = listOf("钉钉", "飞书", "企业微信", "WxPusher", "Telegram", "Discord", "自定义推送")
     var selectedChannel by remember { mutableStateOf(channels.first()) }
     var channelExpanded by remember { mutableStateOf(false) }
+    
+    // 渠道与配置键的映射
+    val channelConfigMap = mapOf(
+        "钉钉" to "dingtalk",
+        "飞书" to "feishu",
+        "企业微信" to "wecom",
+        "WxPusher" to "wxpusher",
+        "Telegram" to "telegram",
+        "Discord" to "discord",
+        "自定义推送" to "custom"
+    )
 
     var pushResult by remember { mutableStateOf("") }
     var showResultDialog by remember { mutableStateOf(false) }
@@ -77,6 +116,10 @@ fun PushSettingsPage(
         discordUsername = allConfigs.find { it.key == "push_discord_username" }?.value ?: ""
         customUrl = allConfigs.find { it.key == "push_custom" }?.value ?: ""
         customHeaders = allConfigs.find { it.key == "push_custom_headers" }?.value ?: ""
+        
+        // 加载保存的渠道
+        val savedChannelKey = allConfigs.find { it.key == "push_channel" }?.value
+        selectedChannel = channelConfigMap.entries.find { it.value == savedChannelKey }?.key ?: channels.first()
     }
 
     Scaffold(
@@ -154,6 +197,7 @@ fun PushSettingsPage(
                             pushEnabled = enabled
                             scope.launch {
                                 configDao.saveConfig(AppConfig("push_enabled", enabled.toString()))
+                                triggerAutoBackup(context)
                             }
                         }
                     )
@@ -456,6 +500,7 @@ fun PushSettingsPage(
                             configDao.saveConfigs(
                                 listOf(
                                     AppConfig("push_enabled", pushEnabled.toString()),
+                                    AppConfig("push_channel", channelConfigMap[selectedChannel] ?: "dingtalk"),
                                     AppConfig("push_dingtalk", dingtalkUrl),
                                     AppConfig("push_dingtalk_secret", dingtalkSecret),
                                     AppConfig("push_feishu", feishuUrl),
@@ -472,6 +517,7 @@ fun PushSettingsPage(
                                     AppConfig("push_custom_headers", customHeaders)
                                 )
                             )
+                            triggerAutoBackup(context)
                             pushResult = "配置已保存"
                             showResultDialog = true
                         }
