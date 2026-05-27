@@ -163,7 +163,6 @@ Contributions are welcome! Please feel free to submit issues and pull requests.
 ## 👤 Author & License
 
 - **Author**: Mars
-- **Email**: moonbai@moonbai.com
 - **License**: [MIT License](LICENSE)
 
 ---
