@@ -43,6 +43,7 @@ fun BackupSettingsPage(
     var showFilePicker by remember { mutableStateOf(false) }
     var remoteFiles by remember { mutableStateOf<List<String>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
+    var webdavConfigExpanded by remember { mutableStateOf(false) }
 
     val backupFiles = DataMigrationUtil.listBackupFiles(context)
 
@@ -206,87 +207,107 @@ fun BackupSettingsPage(
             HorizontalDivider()
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("WebDAV 云端备份", style = MaterialTheme.typography.titleLarge)
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = webdavUrl,
-                onValueChange = { webdavUrl = it },
-                label = { Text("WebDAV 服务器地址") },
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("https://dav.example.com") }
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = webdavUsername,
-                onValueChange = { webdavUsername = it },
-                label = { Text("用户名") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = webdavPassword,
-                onValueChange = { webdavPassword = it },
-                label = { Text("密码") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = webdavPath,
-                onValueChange = { webdavPath = it },
-                label = { Text("远程路径") },
-                modifier = Modifier.fillMaxWidth()
-            )
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("WebDAV 云端备份", style = MaterialTheme.typography.titleMedium)
+                TextButton(onClick = { webdavConfigExpanded = !webdavConfigExpanded }) {
+                    Text(if (webdavConfigExpanded) "收起" else "展开")
+                }
+            }
             Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = {
-                    scope.launch {
-                        configDao.saveConfigs(
-                            listOf(
-                                AppConfig("webdav_url", webdavUrl),
-                                AppConfig("webdav_username", webdavUsername),
-                                AppConfig("webdav_password", webdavPassword),
-                                AppConfig("webdav_path", webdavPath)
-                            )
+            
+            if (webdavConfigExpanded) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        OutlinedTextField(
+                            value = webdavUrl,
+                            onValueChange = { webdavUrl = it },
+                            label = { Text("WebDAV 服务器地址") },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = { Text("https://dav.example.com") }
                         )
-                        operationResult = "配置保存成功！"
-                        showResultDialog = true
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("保存配置")
-            }
-            Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
-            Button(
-                onClick = {
-                    scope.launch {
-                        val config = WebDavManager.WebDavConfig(
-                            baseUrl = webdavUrl,
-                            username = webdavUsername,
-                            password = webdavPassword,
-                            remotePath = webdavPath
+                        OutlinedTextField(
+                            value = webdavUsername,
+                            onValueChange = { webdavUsername = it },
+                            label = { Text("用户名") },
+                            modifier = Modifier.fillMaxWidth()
                         )
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                        val connected = WebDavManager.testConnection(config)
-                        if (connected) {
-                            operationResult = "WebDAV 连接成功！"
-                        } else {
-                            operationResult = "WebDAV 连接失败，请检查配置"
+                        OutlinedTextField(
+                            value = webdavPassword,
+                            onValueChange = { webdavPassword = it },
+                            label = { Text("密码") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        OutlinedTextField(
+                            value = webdavPath,
+                            onValueChange = { webdavPath = it },
+                            label = { Text("远程路径") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    configDao.saveConfigs(
+                                        listOf(
+                                            AppConfig("webdav_url", webdavUrl),
+                                            AppConfig("webdav_username", webdavUsername),
+                                            AppConfig("webdav_password", webdavPassword),
+                                            AppConfig("webdav_path", webdavPath)
+                                        )
+                                    )
+                                    operationResult = "配置保存成功！"
+                                    showResultDialog = true
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("保存配置")
                         }
-                        showResultDialog = true
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    val config = WebDavManager.WebDavConfig(
+                                        baseUrl = webdavUrl,
+                                        username = webdavUsername,
+                                        password = webdavPassword,
+                                        remotePath = webdavPath
+                                    )
+
+                                    val connected = WebDavManager.testConnection(config)
+                                    if (connected) {
+                                        operationResult = "WebDAV 连接成功！"
+                                    } else {
+                                        operationResult = "WebDAV 连接失败，请检查配置"
+                                    }
+                                    showResultDialog = true
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("测试连接")
+                        }
                     }
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("测试连接")
+                }
+                Spacer(modifier = Modifier.height(16.dp))
             }
-            Spacer(modifier = Modifier.height(8.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
