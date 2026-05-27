@@ -6,7 +6,9 @@ import androidx.room.PrimaryKey
 enum class OvertimeType {
     WORKDAY,
     RESTDAY,
-    HOLIDAY
+    HOLIDAY,
+    LEAVE_HALF,
+    LEAVE_FULL
 }
 
 @Entity(tableName = "overtime_record")
