@@ -93,7 +93,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.navigation:navigation-compose:2.7.7")
 
-    implementation("top.yukonga.miuix.kmp:miuix-android:0.8.8")
+    implementation("top.yukonga.miuix.kmp:miuix-android:0.5.2")
 
     implementation("androidx.room:room-runtime:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
