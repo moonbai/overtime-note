@@ -18,6 +18,9 @@ import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.mars.overtime.OvertimeApplication
+import top.yukonga.miuix.kmp.theme.ColorSchemeMode
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.theme.rememberThemeController
 
 enum class ThemeMode {
     SYSTEM, LIGHT, DARK
@@ -411,51 +414,12 @@ fun OvertimeTheme(
         ThemeMode.DARK -> true
     }
 
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val baseScheme = if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-            val accentPrimary = when (accentColor) {
-                AccentColor.BLUE -> Color(0xFF1976D2)
-                AccentColor.PURPLE -> Color(0xFF7B1FA2)
-                AccentColor.TEAL -> Color(0xFF00897B)
-                AccentColor.ORANGE -> Color(0xFFF57C00)
-                AccentColor.PINK -> Color(0xFFC2185B)
-                AccentColor.RED -> Color(0xFFD32F2F)
-                AccentColor.GREEN -> Color(0xFF388E3C)
-                AccentColor.YELLOW -> Color(0xFFF9A825)
-            }
-            baseScheme.copy(
-                primary = if (darkTheme) accentPrimary.copy(alpha = 0.9f) else accentPrimary,
-                onPrimary = if (darkTheme) Color.White else Color.White,
-                primaryContainer = accentPrimary.copy(alpha = 0.12f),
-                onPrimaryContainer = accentPrimary
-            )
-        }
-        darkTheme -> {
-            when (accentColor) {
-                AccentColor.BLUE -> BlueDarkColorScheme
-                AccentColor.PURPLE -> PurpleDarkColorScheme
-                AccentColor.TEAL -> TealDarkColorScheme
-                AccentColor.ORANGE -> OrangeDarkColorScheme
-                AccentColor.PINK -> PinkDarkColorScheme
-                AccentColor.RED -> RedDarkColorScheme
-                AccentColor.GREEN -> GreenDarkColorScheme
-                AccentColor.YELLOW -> YellowDarkColorScheme
-            }
-        }
-        else -> {
-            when (accentColor) {
-                AccentColor.BLUE -> BlueColorScheme
-                AccentColor.PURPLE -> PurpleColorScheme
-                AccentColor.TEAL -> TealColorScheme
-                AccentColor.ORANGE -> OrangeColorScheme
-                AccentColor.PINK -> PinkColorScheme
-                AccentColor.RED -> RedColorScheme
-                AccentColor.GREEN -> GreenColorScheme
-                AccentColor.YELLOW -> YellowColorScheme
-            }
-        }
+    val miuixMode = when (themeMode) {
+        ThemeMode.SYSTEM -> if (dynamicColor) ColorSchemeMode.MonetSystem else ColorSchemeMode.System
+        ThemeMode.LIGHT -> if (dynamicColor) ColorSchemeMode.MonetLight else ColorSchemeMode.Light
+        ThemeMode.DARK -> if (dynamicColor) ColorSchemeMode.MonetDark else ColorSchemeMode.Dark
     }
+    val themeController = rememberThemeController(miuixMode)
 
     val scaleFactor = getFontScaleValue(fontScale)
 
@@ -599,11 +563,16 @@ fun OvertimeTheme(
         }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = typography,
-        shapes = shapes,
-        content = content
+    MiuixTheme(
+        controller = themeController,
+        content = {
+            MaterialTheme(
+                colorScheme = MaterialTheme.colorScheme,
+                typography = typography,
+                shapes = shapes,
+                content = content
+            )
+        }
     )
 }
 
