@@ -2,17 +2,16 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
-    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
     namespace = "com.mars.overtime"
-    compileSdk = 37
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.mars.overtime"
         minSdk = 24
-        targetSdk = 37
+        targetSdk = 34
         versionCode = 16
         versionName = "1.0.16"
 
@@ -62,6 +61,9 @@ android {
     buildFeatures {
         compose = true
     }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.14"
+    }
 
     packaging {
         resources {
@@ -91,9 +93,9 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.navigation:navigation-compose:2.7.7")
 
-    implementation("top.yukonga.miuix.kmp:miuix-ui-android:0.9.0")
-    implementation("top.yukonga.miuix.kmp:miuix-preference-android:0.9.0")
-    implementation("top.yukonga.miuix.kmp:miuix-icons-android:0.9.0")
+    implementation("top.yukonga.miuix.kmp:miuix-ui-android:0.8.8")
+    implementation("top.yukonga.miuix.kmp:miuix-preference-android:0.8.8")
+    implementation("top.yukonga.miuix.kmp:miuix-icons-android:0.8.8")
 
     implementation("androidx.room:room-runtime:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
