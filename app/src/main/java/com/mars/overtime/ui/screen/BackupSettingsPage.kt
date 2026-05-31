@@ -5,9 +5,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -17,8 +14,12 @@ import com.mars.overtime.database.AppConfig
 import com.mars.overtime.util.*
 import kotlinx.coroutines.launch
 import java.io.File
+import top.yukonga.miuix.kmp.basic.*
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.icons.*
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.component.AlertDialog
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackupSettingsPage(
     onNavigateBack: () -> Unit
@@ -157,7 +158,7 @@ fun BackupSettingsPage(
                 title = { Text("备份恢复") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "返回")
+                        Icon(MiuixIcons.ArrowBack, contentDescription = "返回")
                     }
                 }
             )
@@ -170,7 +171,7 @@ fun BackupSettingsPage(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            Text("本地备份", style = MaterialTheme.typography.titleLarge)
+            Text("本地备份", style = MiuixTheme.textStyles.titleLarge)
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
@@ -212,7 +213,7 @@ fun BackupSettingsPage(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("WebDAV 云端备份", style = MaterialTheme.typography.titleMedium)
+                Text("WebDAV 云端备份", style = MiuixTheme.textStyles.titleMedium)
                 TextButton(onClick = { webdavConfigExpanded = !webdavConfigExpanded }) {
                     Text(if (webdavConfigExpanded) "收起" else "展开")
                 }
@@ -223,7 +224,7 @@ fun BackupSettingsPage(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        containerColor = MiuixTheme.colorScheme.surfaceVariant
                     )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {

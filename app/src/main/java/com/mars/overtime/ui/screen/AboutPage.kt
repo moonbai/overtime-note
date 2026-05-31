@@ -14,15 +14,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.CloudUpload
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.Celebration
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,8 +26,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.icons.ArrowBack
+import top.yukonga.miuix.kmp.icon.icons.Code
+import top.yukonga.miuix.kmp.icon.icons.Edit
+import top.yukonga.miuix.kmp.icon.icons.Notifications
+import top.yukonga.miuix.kmp.icon.icons.CloudUpload
+import top.yukonga.miuix.kmp.icon.icons.AttachMoney
+import top.yukonga.miuix.kmp.icon.icons.Celebration
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutPage(
     onNavigateBack: () -> Unit
@@ -51,16 +56,16 @@ fun AboutPage(
                 title = { Text("关于") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "返回")
+                        Icon(MiuixIcons.ArrowBack, contentDescription = "返回")
                     }
                 }
             )
         }
-    ) { padding ->
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(paddingValues)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -80,9 +85,9 @@ fun AboutPage(
                         modifier = Modifier.size(110.dp)
                     )
                 } ?: Icon(
-                    imageVector = Icons.Default.Celebration,
+                    imageVector = MiuixIcons.Celebration,
                     contentDescription = "应用图标",
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MiuixTheme.colorScheme.primary,
                     modifier = Modifier.size(80.dp)
                 )
             }
@@ -91,21 +96,21 @@ fun AboutPage(
 
             Text(
                 text = "加班记",
-                style = MaterialTheme.typography.headlineSmall,
+                style = MiuixTheme.textStyles.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
             Text(
                 text = "版本 $versionName",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MiuixTheme.textStyles.bodyMedium,
+                color = MiuixTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = "用心记录，每一份付出都值得被看见",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
+                style = MiuixTheme.textStyles.titleSmall,
+                color = MiuixTheme.colorScheme.primary,
                 fontWeight = FontWeight.Medium
             )
 
@@ -114,22 +119,21 @@ fun AboutPage(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp),
-                shape = RoundedCornerShape(16.dp)
+                    .padding(horizontal = 20.dp)
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp)
                 ) {
                     Text(
                         text = "关于应用",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MiuixTheme.textStyles.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "一款简洁实用的加班记录与薪资计算工具，帮你轻松记录每一次加班，精准计算应得报酬。",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        text = "一款简洁实用的加班记录与薪资计算工具，帮您轻松记录每一次加班，精准计算应得报酬。",
+                        style = MiuixTheme.textStyles.bodyMedium,
+                        color = MiuixTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 22.sp
                     )
                 }
@@ -139,7 +143,7 @@ fun AboutPage(
 
             Text(
                 text = "主要功能",
-                style = MaterialTheme.typography.titleMedium,
+                style = MiuixTheme.textStyles.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -154,14 +158,14 @@ fun AboutPage(
             Spacer(modifier = Modifier.height(32.dp))
 
             AboutItem(
-                icon = Icons.Default.Code,
+                icon = MiuixIcons.Code,
                 title = "作者",
                 subtitle = "Mars",
                 onClick = {}
             )
 
             AboutItem(
-                icon = Icons.Default.Code,
+                icon = MiuixIcons.Code,
                 title = "开源仓库",
                 subtitle = "github.com/moonbai/overtime-note",
                 onClick = {}
@@ -171,13 +175,13 @@ fun AboutPage(
 
             Text(
                 text = "© 2024 Mars",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MiuixTheme.textStyles.bodySmall,
+                color = MiuixTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = "All rights reserved",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                style = MiuixTheme.textStyles.bodySmall,
+                color = MiuixTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -195,12 +199,12 @@ fun FeatureGrid() {
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             FeatureCard(
-                icon = Icons.Default.Edit,
+                icon = MiuixIcons.Edit,
                 title = "本地记录",
                 modifier = Modifier.weight(1f)
             )
             FeatureCard(
-                icon = Icons.Default.Notifications,
+                icon = MiuixIcons.Notifications,
                 title = "多渠道推送",
                 modifier = Modifier.weight(1f)
             )
@@ -211,12 +215,12 @@ fun FeatureGrid() {
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             FeatureCard(
-                icon = Icons.Default.Celebration,
+                icon = MiuixIcons.Celebration,
                 title = "智能识别",
                 modifier = Modifier.weight(1f)
             )
             FeatureCard(
-                icon = Icons.Default.CloudUpload,
+                icon = MiuixIcons.CloudUpload,
                 title = "云端备份",
                 modifier = Modifier.weight(1f)
             )
@@ -227,12 +231,12 @@ fun FeatureGrid() {
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             FeatureCard(
-                icon = Icons.Default.AttachMoney,
+                icon = MiuixIcons.AttachMoney,
                 title = "薪资计算",
                 modifier = Modifier.weight(1f)
             )
             FeatureCard(
-                icon = Icons.Default.Edit,
+                icon = MiuixIcons.Edit,
                 title = "更多功能",
                 modifier = Modifier.weight(1f)
             )
@@ -247,8 +251,7 @@ fun FeatureCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(12.dp)
+        modifier = modifier
     ) {
         Column(
             modifier = Modifier
@@ -260,20 +263,20 @@ fun FeatureCard(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+                    .background(MiuixTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MiuixTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MiuixTheme.textStyles.bodyMedium,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
             )
@@ -288,11 +291,10 @@ fun AboutItem(
     subtitle: String,
     onClick: () -> Unit
 ) {
-    Surface(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(12.dp),
         onClick = onClick
     ) {
         Row(
@@ -304,13 +306,13 @@ fun AboutItem(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+                    .background(MiuixTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MiuixTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -320,13 +322,13 @@ fun AboutItem(
             Column {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MiuixTheme.textStyles.titleSmall,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
                     text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MiuixTheme.textStyles.bodySmall,
+                    color = MiuixTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

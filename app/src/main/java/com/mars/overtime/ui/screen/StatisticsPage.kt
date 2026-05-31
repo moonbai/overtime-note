@@ -3,10 +3,6 @@ package com.mars.overtime.ui.screen
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowLeft
-import androidx.compose.material.icons.filled.ArrowRight
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,8 +14,11 @@ import com.mars.overtime.database.OvertimeRecord
 import com.mars.overtime.database.OvertimeType
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.*
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.icons.*
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatisticsPage() {
     val db = OvertimeApplication.database
@@ -82,12 +81,9 @@ fun StatisticsPage() {
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("统计", style = MaterialTheme.typography.titleLarge)
+                        Text("统计", style = MiuixTheme.textStyles.titleLarge)
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                }
             )
         }
     ) { paddingValues ->
@@ -98,11 +94,10 @@ fun StatisticsPage() {
                 .padding(16.dp)
         ) {
             item {
-                // 月份选择器
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        containerColor = MiuixTheme.colorScheme.surfaceVariant
                     )
                 ) {
                     Row(
@@ -120,11 +115,11 @@ fun StatisticsPage() {
                                 selectedMonth--
                             }
                         }) {
-                            Icon(Icons.Default.ArrowLeft, contentDescription = "上一月")
+                            Icon(MiuixIcons.ArrowLeft, contentDescription = "上一月")
                         }
                         Text(
                             text = "${selectedYear}年${selectedMonth}月",
-                            style = MaterialTheme.typography.headlineSmall,
+                            style = MiuixTheme.textStyles.headlineSmall,
                             fontWeight = FontWeight.Bold
                         )
                         IconButton(onClick = {
@@ -135,7 +130,7 @@ fun StatisticsPage() {
                                 selectedMonth++
                             }
                         }) {
-                            Icon(Icons.Default.ArrowRight, contentDescription = "下一月")
+                            Icon(MiuixIcons.ArrowRight, contentDescription = "下一月")
                         }
                     }
                 }
@@ -145,7 +140,7 @@ fun StatisticsPage() {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                        containerColor = MiuixTheme.colorScheme.primaryContainer
                     )
                 ) {
                     Column(
@@ -156,27 +151,27 @@ fun StatisticsPage() {
                     ) {
                         Text(
                             text = "月度加班汇总",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            style = MiuixTheme.textStyles.titleMedium,
+                            color = MiuixTheme.colorScheme.onPrimaryContainer
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = String.format("%.1f", totalHours),
-                            style = MaterialTheme.typography.displayMedium,
+                            style = MiuixTheme.textStyles.displayMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            color = MiuixTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
                             text = "小时",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                            style = MiuixTheme.textStyles.bodyLarge,
+                            color = MiuixTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = String.format("¥%.2f", totalSalary),
-                            style = MaterialTheme.typography.displaySmall,
+                            style = MiuixTheme.textStyles.displaySmall,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            color = MiuixTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 }
@@ -187,15 +182,15 @@ fun StatisticsPage() {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
+                        containerColor = MiuixTheme.colorScheme.surface
                     )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             text = "分类统计",
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MiuixTheme.textStyles.titleMedium,
                             modifier = Modifier.padding(bottom = 16.dp),
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MiuixTheme.colorScheme.onSurface
                         )
 
                         Row(
@@ -206,13 +201,13 @@ fun StatisticsPage() {
                                 title = "工作日",
                                 hours = workdayHours,
                                 salary = workdaySalary,
-                                color = MaterialTheme.colorScheme.primary
+                                color = MiuixTheme.colorScheme.primary
                             )
                             StatItem(
                                 title = "休息日",
                                 hours = restdayHours,
                                 salary = restdaySalary,
-                                color = MaterialTheme.colorScheme.secondary
+                                color = MiuixTheme.colorScheme.secondary
                             )
                             StatItem(
                                 title = "节假日",
@@ -229,9 +224,9 @@ fun StatisticsPage() {
             item {
                 Text(
                     text = "详细记录",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MiuixTheme.textStyles.titleMedium,
                     modifier = Modifier.padding(bottom = 8.dp),
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MiuixTheme.colorScheme.onBackground
                 )
             }
 
@@ -245,8 +240,8 @@ fun StatisticsPage() {
                     ) {
                         Text(
                             text = "本月暂无加班记录",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MiuixTheme.textStyles.bodyLarge,
+                            color = MiuixTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -257,7 +252,7 @@ fun StatisticsPage() {
                             .fillMaxWidth()
                             .padding(bottom = 8.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface
+                            containerColor = MiuixTheme.colorScheme.surface
                         )
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
@@ -268,7 +263,7 @@ fun StatisticsPage() {
                             ) {
                                 Text(
                                     text = record.date,
-                                    style = MaterialTheme.typography.titleSmall
+                                    style = MiuixTheme.textStyles.titleSmall
                                 )
                                 Text(
                                     text = when (record.type) {
@@ -276,10 +271,10 @@ fun StatisticsPage() {
                                         OvertimeType.RESTDAY -> "休息日"
                                         OvertimeType.HOLIDAY -> "节假日"
                                     },
-                                    style = MaterialTheme.typography.bodySmall,
+                                    style = MiuixTheme.textStyles.bodySmall,
                                     color = when (record.type) {
-                                        OvertimeType.WORKDAY -> MaterialTheme.colorScheme.primary
-                                        OvertimeType.RESTDAY -> MaterialTheme.colorScheme.secondary
+                                        OvertimeType.WORKDAY -> MiuixTheme.colorScheme.primary
+                                        OvertimeType.RESTDAY -> MiuixTheme.colorScheme.secondary
                                         OvertimeType.HOLIDAY -> Color(0xFFFF5722)
                                     }
                                 )
@@ -292,21 +287,21 @@ fun StatisticsPage() {
                             ) {
                                 Text(
                                     text = "${record.duration} 小时",
-                                    style = MaterialTheme.typography.bodyLarge,
+                                    style = MiuixTheme.textStyles.bodyLarge,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(
                                     text = String.format("¥%.2f", calculateSalary(record, hourlyRate, workdayRate, restdayRate, holidayRate)),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.secondary
+                                    style = MiuixTheme.textStyles.bodyLarge,
+                                    color = MiuixTheme.colorScheme.secondary
                                 )
                             }
                             if (record.remark.isNotEmpty()) {
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     text = record.remark,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    style = MiuixTheme.textStyles.bodySmall,
+                                    color = MiuixTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -331,26 +326,26 @@ fun StatItem(
     ) {
         Text(
             text = String.format("%.1f", hours),
-            style = MaterialTheme.typography.titleLarge,
+            style = MiuixTheme.textStyles.titleLarge,
             fontWeight = FontWeight.Bold,
             color = color
         )
         Text(
             text = "小时",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            style = MiuixTheme.textStyles.bodySmall,
+            color = MiuixTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = String.format("¥%.2f", salary),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.secondary
+            style = MiuixTheme.textStyles.bodySmall,
+            color = MiuixTheme.colorScheme.secondary
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = title,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            style = MiuixTheme.textStyles.bodySmall,
+            color = MiuixTheme.colorScheme.onSurfaceVariant
         )
     }
 }

@@ -3,9 +3,6 @@ package com.mars.overtime.ui.screen
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,8 +13,12 @@ import com.mars.overtime.util.HolidayDataSource
 import com.mars.overtime.util.HolidayManager
 import kotlinx.coroutines.launch
 import java.time.Year
+import top.yukonga.miuix.kmp.basic.*
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.icons.*
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.component.AlertDialog
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HolidaySettingsPage(
     onNavigateBack: () -> Unit
@@ -57,12 +58,9 @@ fun HolidaySettingsPage(
                 title = { Text("节假日管理") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "返回")
+                        Icon(MiuixIcons.ArrowBack, contentDescription = "返回")
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                }
             )
         }
     ) { padding ->
@@ -73,7 +71,7 @@ fun HolidaySettingsPage(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            Text("数据源选择", style = MaterialTheme.typography.titleMedium)
+            Text("数据源选择", style = MiuixTheme.textStyles.titleMedium)
             Spacer(modifier = Modifier.height(12.dp))
             
             HolidayDataSource.values().forEach { source ->
@@ -99,7 +97,7 @@ fun HolidaySettingsPage(
                             HolidayDataSource.MXNZP -> "MXNZP API"
                             HolidayDataSource.CUSTOM -> "自定义 API"
                         },
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MiuixTheme.textStyles.bodyLarge
                     )
                 }
             }
@@ -110,11 +108,11 @@ fun HolidaySettingsPage(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        containerColor = MiuixTheme.colorScheme.surfaceVariant
                     )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("MXNZP 配置", style = MaterialTheme.typography.titleMedium)
+                        Text("MXNZP 配置", style = MiuixTheme.textStyles.titleMedium)
                         Spacer(modifier = Modifier.height(12.dp))
                         
                         OutlinedTextField(
@@ -138,7 +136,7 @@ fun HolidaySettingsPage(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("忽略节假日", style = MaterialTheme.typography.bodyLarge)
+                            Text("忽略节假日", style = MiuixTheme.textStyles.bodyLarge)
                             Switch(
                                 checked = mxnzpIgnoreHoliday,
                                 onCheckedChange = {
@@ -158,16 +156,16 @@ fun HolidaySettingsPage(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        containerColor = MiuixTheme.colorScheme.surfaceVariant
                     )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("自定义 API 配置", style = MaterialTheme.typography.titleMedium)
+                        Text("自定义 API 配置", style = MiuixTheme.textStyles.titleMedium)
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             "支持 {year} 或 \${year} 占位符自动替换年份",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MiuixTheme.textStyles.bodySmall,
+                            color = MiuixTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         
@@ -210,7 +208,7 @@ fun HolidaySettingsPage(
             Spacer(modifier = Modifier.height(16.dp))
 
             val currentYear = Year.now().value.toString()
-            Text("当前年份: $currentYear", style = MaterialTheme.typography.titleMedium)
+            Text("当前年份: $currentYear", style = MiuixTheme.textStyles.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
@@ -251,8 +249,8 @@ fun HolidaySettingsPage(
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    containerColor = MiuixTheme.colorScheme.secondaryContainer,
+                    contentColor = MiuixTheme.colorScheme.onSecondaryContainer
                 )
             ) {
                 Text("清除缓存")

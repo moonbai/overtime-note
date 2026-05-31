@@ -1,14 +1,9 @@
 package com.mars.overtime.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Assessment
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +15,18 @@ import androidx.navigation.compose.rememberNavController
 import com.mars.overtime.ui.screen.*
 import com.mars.overtime.ui.theme.BottomBarStyle
 import com.mars.overtime.ui.theme.ThemeManager
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.component.BottomNavigationBar
+import top.yukonga.miuix.kmp.component.BottomNavigationItem
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.icons.Add
+import top.yukonga.miuix.kmp.icon.icons.Assessment
+import top.yukonga.miuix.kmp.icon.icons.Home
+import top.yukonga.miuix.kmp.icon.icons.Settings
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 sealed class BottomNavScreen(val route: String) {
     object Statistics : BottomNavScreen("statistics")
@@ -221,14 +228,14 @@ fun BottomNavigationBar(
     bottomBarStyle: BottomBarStyle = BottomBarStyle.ICON_AND_TEXT
 ) {
     if (quickReportMode) {
-        NavigationBar {
-            NavigationBarItem(
+        BottomNavigationBar {
+            BottomNavigationItem(
                 selected = currentScreen == BottomNavScreen.Statistics,
                 onClick = onNavigateToStatistics,
                 icon = {
                     if (bottomBarStyle != BottomBarStyle.TEXT_ONLY) {
                         Icon(
-                            imageVector = Icons.Default.Assessment,
+                            imageVector = MiuixIcons.Assessment,
                             contentDescription = if (bottomBarStyle == BottomBarStyle.ICON_ONLY) "统计" else null
                         )
                     }
@@ -248,26 +255,26 @@ fun BottomNavigationBar(
                     modifier = Modifier
                         .size(60.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary)
+                        .background(MiuixTheme.colorScheme.primary)
                         .clickable(onClick = onNavigateToHome),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Add,
+                        imageVector = MiuixIcons.Add,
                         contentDescription = "快速提报",
-                        tint = MaterialTheme.colorScheme.onPrimary,
+                        tint = MiuixTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(32.dp)
                     )
                 }
             }
 
-            NavigationBarItem(
+            BottomNavigationItem(
                 selected = currentScreen == BottomNavScreen.Settings,
                 onClick = onNavigateToSettings,
                 icon = {
                     if (bottomBarStyle != BottomBarStyle.TEXT_ONLY) {
                         Icon(
-                            imageVector = Icons.Default.Settings,
+                            imageVector = MiuixIcons.Settings,
                             contentDescription = if (bottomBarStyle == BottomBarStyle.ICON_ONLY) "设置" else null
                         )
                     }
@@ -278,14 +285,14 @@ fun BottomNavigationBar(
             )
         }
     } else {
-        NavigationBar {
-            NavigationBarItem(
+        BottomNavigationBar {
+            BottomNavigationItem(
                 selected = currentScreen == BottomNavScreen.Statistics,
                 onClick = onNavigateToStatistics,
                 icon = {
                     if (bottomBarStyle != BottomBarStyle.TEXT_ONLY) {
                         Icon(
-                            imageVector = Icons.Default.Assessment,
+                            imageVector = MiuixIcons.Assessment,
                             contentDescription = if (bottomBarStyle == BottomBarStyle.ICON_ONLY) "统计" else null
                         )
                     }
@@ -295,13 +302,13 @@ fun BottomNavigationBar(
                 } else null
             )
 
-            NavigationBarItem(
+            BottomNavigationItem(
                 selected = currentScreen == BottomNavScreen.Home,
                 onClick = onNavigateToHome,
                 icon = {
                     if (bottomBarStyle != BottomBarStyle.TEXT_ONLY) {
                         Icon(
-                            imageVector = Icons.Default.Home,
+                            imageVector = MiuixIcons.Home,
                             contentDescription = if (bottomBarStyle == BottomBarStyle.ICON_ONLY) "首页" else null
                         )
                     }
@@ -311,13 +318,13 @@ fun BottomNavigationBar(
                 } else null
             )
 
-            NavigationBarItem(
+            BottomNavigationItem(
                 selected = currentScreen == BottomNavScreen.Settings,
                 onClick = onNavigateToSettings,
                 icon = {
                     if (bottomBarStyle != BottomBarStyle.TEXT_ONLY) {
                         Icon(
-                            imageVector = Icons.Default.Settings,
+                            imageVector = MiuixIcons.Settings,
                             contentDescription = if (bottomBarStyle == BottomBarStyle.ICON_ONLY) "设置" else null
                         )
                     }

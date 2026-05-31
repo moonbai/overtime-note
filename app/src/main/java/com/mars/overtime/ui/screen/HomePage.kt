@@ -3,11 +3,6 @@ package com.mars.overtime.ui.screen
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,8 +13,21 @@ import com.mars.overtime.database.OvertimeType
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.icons.Add
+import top.yukonga.miuix.kmp.icon.icons.Delete
+import top.yukonga.miuix.kmp.icon.icons.Edit
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.component.AlertDialog
+import top.yukonga.miuix.kmp.component.FloatingActionButton
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomePage(
     onNavigateToAddEdit: () -> Unit,
@@ -46,17 +54,17 @@ fun HomePage(
                 modifier = Modifier.size(64.dp)
             ) {
                 Icon(
-                    Icons.Default.Add,
+                    MiuixIcons.Add,
                     contentDescription = "新建",
                     modifier = Modifier.size(32.dp)
                 )
             }
         }
-    ) { padding ->
+    ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(paddingValues)
                 .padding(16.dp)
         ) {
             if (records.isEmpty()) {
@@ -67,7 +75,7 @@ fun HomePage(
                             .padding(vertical = 64.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("暂无加班记录", style = MaterialTheme.typography.bodyLarge)
+                        Text("暂无加班记录", style = MiuixTheme.textStyles.bodyLarge)
                     }
                 }
             } else {
@@ -91,7 +99,7 @@ fun HomePage(
             title = { Text("确认删除") },
             text = { Text("确定要删除这条加班记录吗？") },
             confirmButton = {
-                TextButton(
+                Button(
                     onClick = {
                         scope.launch {
                             recordToDelete?.let { dao.deleteRecord(it) }
@@ -102,7 +110,7 @@ fun HomePage(
                 ) { Text("删除") }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("取消") }
+                Button(onClick = { showDeleteDialog = false }) { Text("取消") }
             }
         )
     }
@@ -125,8 +133,7 @@ fun OvertimeRecordItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .padding(vertical = 4.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(
@@ -136,24 +143,24 @@ fun OvertimeRecordItem(
             ) {
                 Text(
                     text = dateStr,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MiuixTheme.textStyles.titleMedium
                 )
                 Text(
                     text = "¥${"%.2f".format(record.money)}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
+                    style = MiuixTheme.textStyles.titleMedium,
+                    color = MiuixTheme.colorScheme.primary
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "$typeStr | ${record.startTime} - ${record.endTime} | ${"%.2f".format(record.duration)}小时",
-                style = MaterialTheme.typography.bodyMedium
+                style = MiuixTheme.textStyles.bodyMedium
             )
             if (record.remark.isNotBlank()) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = record.remark,
-                    style = MaterialTheme.typography.bodySmall
+                    style = MiuixTheme.textStyles.bodySmall
                 )
             }
             Row(
@@ -163,10 +170,10 @@ fun OvertimeRecordItem(
                 horizontalArrangement = Arrangement.End
             ) {
                 IconButton(onClick = onEdit) {
-                    Icon(Icons.Default.Edit, contentDescription = "编辑")
+                    Icon(MiuixIcons.Edit, contentDescription = "编辑")
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "删除")
+                    Icon(MiuixIcons.Delete, contentDescription = "删除")
                 }
             }
         }

@@ -4,14 +4,18 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.ListItem
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.icons.ArrowForward
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsPage(
     onNavigateToAppearanceSettings: () -> Unit,
@@ -25,17 +29,14 @@ fun SettingsPage(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("设置") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                title = { Text("设置") }
             )
         }
-    ) { padding ->
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
         ) {
             SettingsItem("外观设置", "主题、强调色、字体大小", onNavigateToAppearanceSettings)
@@ -58,7 +59,7 @@ fun SettingsItem(
     ListItem(
         headlineContent = { Text(title) },
         supportingContent = { Text(subtitle) },
-        trailingContent = { Icon(Icons.Default.ArrowForward, contentDescription = null) },
+        trailingContent = { Icon(MiuixIcons.ArrowForward, contentDescription = null) },
         modifier = Modifier.clickable(onClick = onClick)
     )
     HorizontalDivider()

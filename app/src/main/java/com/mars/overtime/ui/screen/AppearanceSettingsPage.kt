@@ -10,9 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,8 +20,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.mars.overtime.ui.theme.*
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.*
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.icons.*
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppearanceSettingsPage(
     onNavigateBack: () -> Unit
@@ -77,26 +78,23 @@ fun AppearanceSettingsPage(
                 title = { Text("外观设置") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "返回")
+                        Icon(MiuixIcons.ArrowBack, contentDescription = "返回")
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                }
             )
         }
-    ) { padding ->
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
             Text(
                 text = "主题模式",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
+                style = MiuixTheme.textStyles.titleMedium,
+                color = MiuixTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -106,7 +104,7 @@ fun AppearanceSettingsPage(
             ) {
                 ThemeModeCard(
                     title = "跟随系统",
-                    icon = Icons.Default.Palette,
+                    icon = MiuixIcons.Palette,
                     selected = selectedThemeMode == ThemeMode.SYSTEM,
                     onClick = {
                         scope.launch { saveThemeMode(ThemeMode.SYSTEM) }
@@ -115,7 +113,7 @@ fun AppearanceSettingsPage(
                 )
                 ThemeModeCard(
                     title = "浅色",
-                    icon = Icons.Default.LightMode,
+                    icon = MiuixIcons.LightMode,
                     selected = selectedThemeMode == ThemeMode.LIGHT,
                     onClick = {
                         scope.launch { saveThemeMode(ThemeMode.LIGHT) }
@@ -124,7 +122,7 @@ fun AppearanceSettingsPage(
                 )
                 ThemeModeCard(
                     title = "深色",
-                    icon = Icons.Default.DarkMode,
+                    icon = MiuixIcons.DarkMode,
                     selected = selectedThemeMode == ThemeMode.DARK,
                     onClick = {
                         scope.launch { saveThemeMode(ThemeMode.DARK) }
@@ -143,12 +141,12 @@ fun AppearanceSettingsPage(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "动态颜色",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MiuixTheme.textStyles.titleMedium
                     )
                     Text(
-                        text = "根据壁纸自动调整主题色（Android 12+）",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = "根据壁纸自动调整主题颜色（Android 12+）",
+                        style = MiuixTheme.textStyles.bodySmall,
+                        color = MiuixTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Switch(
@@ -163,14 +161,14 @@ fun AppearanceSettingsPage(
 
             Text(
                 text = "强调色",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
+                style = MiuixTheme.textStyles.titleMedium,
+                color = MiuixTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = if (dynamicColor) "开启动态颜色时，强调色将混合到主题中" else "选择应用的主题强调色",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MiuixTheme.textStyles.bodySmall,
+                color = MiuixTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -192,8 +190,8 @@ fun AppearanceSettingsPage(
 
             Text(
                 text = "字体大小",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
+                style = MiuixTheme.textStyles.titleMedium,
+                color = MiuixTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -217,8 +215,8 @@ fun AppearanceSettingsPage(
 
             Text(
                 text = "底栏样式",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
+                style = MiuixTheme.textStyles.titleMedium,
+                color = MiuixTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -230,9 +228,9 @@ fun AppearanceSettingsPage(
                     BottomBarStyleCard(
                         title = ThemeManager.getBottomBarStyleName(style),
                         icon = when (style) {
-                            BottomBarStyle.ICON_AND_TEXT -> Icons.Default.ViewDay
-                            BottomBarStyle.ICON_ONLY -> Icons.Default.Image
-                            BottomBarStyle.TEXT_ONLY -> Icons.Default.TextFields
+                            BottomBarStyle.ICON_AND_TEXT -> MiuixIcons.ViewDay
+                            BottomBarStyle.ICON_ONLY -> MiuixIcons.Image
+                            BottomBarStyle.TEXT_ONLY -> MiuixIcons.TextFields
                         },
                         selected = bottomBarStyle == style,
                         onClick = {
@@ -253,12 +251,12 @@ fun AppearanceSettingsPage(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "快速提报模式",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MiuixTheme.textStyles.titleMedium
                     )
                     Text(
                         text = "开启后底栏中间按钮变成提交按钮，点击直接进入提报界面",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MiuixTheme.textStyles.bodySmall,
+                        color = MiuixTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Switch(
@@ -291,12 +289,12 @@ fun ThemeModeCard(
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
             containerColor = if (selected)
-                MaterialTheme.colorScheme.primaryContainer
+                MiuixTheme.colorScheme.primaryContainer
             else
-                MaterialTheme.colorScheme.surfaceVariant
+                MiuixTheme.colorScheme.surfaceVariant
         ),
         border = if (selected)
-            androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+            androidx.compose.foundation.BorderStroke(2.dp, MiuixTheme.colorScheme.primary)
         else
             null
     ) {
@@ -310,19 +308,19 @@ fun ThemeModeCard(
                 imageVector = icon,
                 contentDescription = title,
                 tint = if (selected)
-                    MaterialTheme.colorScheme.primary
+                    MiuixTheme.colorScheme.primary
                 else
-                    MaterialTheme.colorScheme.onSurfaceVariant,
+                    MiuixTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(28.dp)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodySmall,
+                style = MiuixTheme.textStyles.bodySmall,
                 color = if (selected)
-                    MaterialTheme.colorScheme.primary
+                    MiuixTheme.colorScheme.primary
                 else
-                    MaterialTheme.colorScheme.onSurfaceVariant
+                    MiuixTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -338,11 +336,11 @@ fun FontScaleChip(
     FilterChip(
         selected = selected,
         onClick = onClick,
-        label = { Text(title, style = MaterialTheme.typography.bodySmall) },
+        label = { Text(title, style = MiuixTheme.textStyles.bodySmall) },
         modifier = modifier,
         colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+            selectedContainerColor = MiuixTheme.colorScheme.primaryContainer,
+            selectedLabelColor = MiuixTheme.colorScheme.onPrimaryContainer
         )
     )
 }
@@ -360,12 +358,12 @@ fun BottomBarStyleCard(
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
             containerColor = if (selected)
-                MaterialTheme.colorScheme.primaryContainer
+                MiuixTheme.colorScheme.primaryContainer
             else
-                MaterialTheme.colorScheme.surfaceVariant
+                MiuixTheme.colorScheme.surfaceVariant
         ),
         border = if (selected)
-            androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+            androidx.compose.foundation.BorderStroke(2.dp, MiuixTheme.colorScheme.primary)
         else
             null
     ) {
@@ -379,19 +377,19 @@ fun BottomBarStyleCard(
                 imageVector = icon,
                 contentDescription = title,
                 tint = if (selected)
-                    MaterialTheme.colorScheme.primary
+                    MiuixTheme.colorScheme.primary
                 else
-                    MaterialTheme.colorScheme.onSurfaceVariant,
+                    MiuixTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodySmall,
+                style = MiuixTheme.textStyles.bodySmall,
                 color = if (selected)
-                    MaterialTheme.colorScheme.primary
+                    MiuixTheme.colorScheme.primary
                 else
-                    MaterialTheme.colorScheme.onSurfaceVariant
+                    MiuixTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -424,7 +422,7 @@ fun AccentColorItem(
                 .background(colorValue)
                 .then(
                     if (selected) {
-                        Modifier.border(3.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
+                        Modifier.border(3.dp, MiuixTheme.colorScheme.onBackground, CircleShape)
                     } else {
                         Modifier
                     }
@@ -434,7 +432,7 @@ fun AccentColorItem(
         ) {
             if (selected) {
                 Icon(
-                    imageVector = Icons.Default.Check,
+                    imageVector = MiuixIcons.Check,
                     contentDescription = "已选择",
                     tint = Color.White,
                     modifier = Modifier.size(24.dp)
@@ -453,8 +451,8 @@ fun AccentColorItem(
                 AccentColor.GREEN -> "绿色"
                 AccentColor.YELLOW -> "黄色"
             },
-            style = MaterialTheme.typography.bodySmall,
-            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+            style = MiuixTheme.textStyles.bodySmall,
+            color = if (selected) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.onSurfaceVariant
         )
     }
 }

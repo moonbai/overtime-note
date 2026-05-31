@@ -3,10 +3,6 @@ package com.mars.overtime.ui.screen
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Help
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,8 +16,12 @@ import com.mars.overtime.push.PushManager
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import top.yukonga.miuix.kmp.basic.*
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.icons.*
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.component.AlertDialog
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PushSettingsPage(
     onNavigateBack: () -> Unit
@@ -65,7 +65,7 @@ fun PushSettingsPage(
                 title = { Text("推送设置") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "返回")
+                        Icon(MiuixIcons.ArrowBack, contentDescription = "返回")
                     }
                 },
                 actions = {
@@ -89,12 +89,9 @@ fun PushSettingsPage(
                         """.trimIndent()
                         showHelpDialog = true
                     }) {
-                        Icon(Icons.Default.Help, contentDescription = "帮助")
+                        Icon(MiuixIcons.Help, contentDescription = "帮助")
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                }
             )
         }
     ) { padding ->
@@ -108,7 +105,7 @@ fun PushSettingsPage(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                    containerColor = MiuixTheme.colorScheme.primaryContainer
                 )
             ) {
                 Row(
@@ -119,12 +116,12 @@ fun PushSettingsPage(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text("启用推送", style = MaterialTheme.typography.titleLarge)
+                        Text("启用推送", style = MiuixTheme.textStyles.titleLarge)
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "开启后记录加班时会自动推送通知",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MiuixTheme.textStyles.bodySmall,
+                            color = MiuixTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     Switch(
@@ -142,10 +139,9 @@ fun PushSettingsPage(
             Spacer(modifier = Modifier.height(24.dp))
 
             if (pushEnabled) {
-                Text("推送渠道", style = MaterialTheme.typography.titleMedium)
+                Text("推送渠道", style = MiuixTheme.textStyles.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // 钉钉
                 ChannelCard(
                     name = "钉钉",
                     description = "钉钉群机器人推送",
@@ -156,7 +152,6 @@ fun PushSettingsPage(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // 飞书
                 ChannelCard(
                     name = "飞书",
                     description = "飞书群机器人推送",
@@ -167,7 +162,6 @@ fun PushSettingsPage(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // 企业微信
                 ChannelCard(
                     name = "企业微信",
                     description = "企业微信群机器人推送",
@@ -178,7 +172,6 @@ fun PushSettingsPage(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // WxPusher
                 ChannelCard(
                     name = "WxPusher",
                     description = "微信消息推送服务",
@@ -189,7 +182,6 @@ fun PushSettingsPage(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Telegram
                 ChannelCard(
                     name = "Telegram",
                     description = "Telegram机器人推送",
@@ -200,7 +192,6 @@ fun PushSettingsPage(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Discord
                 ChannelCard(
                     name = "Discord",
                     description = "Discord Webhook推送",
@@ -211,7 +202,6 @@ fun PushSettingsPage(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // 自定义推送
                 ChannelCard(
                     name = "自定义推送",
                     description = "自定义API接口推送",
@@ -245,7 +235,7 @@ fun PushSettingsPage(
                         .fillMaxWidth()
                         .height(56.dp)
                 ) {
-                    Text("保存配置", style = MaterialTheme.typography.titleMedium)
+                    Text("保存配置", style = MiuixTheme.textStyles.titleMedium)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -305,7 +295,7 @@ fun PushSettingsPage(
                         .fillMaxWidth()
                         .height(56.dp)
                 ) {
-                    Text("测试推送", style = MaterialTheme.typography.titleMedium)
+                    Text("测试推送", style = MiuixTheme.textStyles.titleMedium)
                 }
             } else {
                 Box(
@@ -316,8 +306,8 @@ fun PushSettingsPage(
                 ) {
                     Text(
                         text = "推送功能已关闭",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MiuixTheme.textStyles.bodyLarge,
+                        color = MiuixTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -360,7 +350,7 @@ fun ChannelCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MiuixTheme.colorScheme.surface
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -370,12 +360,12 @@ fun ChannelCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text(name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
+                    Text(name, style = MiuixTheme.textStyles.titleMedium, fontWeight = FontWeight.Medium)
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MiuixTheme.textStyles.bodySmall,
+                        color = MiuixTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Switch(

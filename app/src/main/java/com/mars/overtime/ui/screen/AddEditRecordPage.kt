@@ -3,10 +3,6 @@ package com.mars.overtime.ui.screen
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,8 +19,22 @@ import com.mars.overtime.util.SalaryCalculator
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.OutlinedButton
+import top.yukonga.miuix.kmp.basic.OutlinedTextField
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.FilterChip
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.icons.ArrowBack
+import top.yukonga.miuix.kmp.icon.icons.Info
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.component.AlertDialog
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditRecordPage(
     onNavigateBack: () -> Unit
@@ -124,16 +134,16 @@ fun AddEditRecordPage(
                 title = { Text("新建加班记录") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "返回")
+                        Icon(MiuixIcons.ArrowBack, contentDescription = "返回")
                     }
                 }
             )
         }
-    ) { padding ->
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(paddingValues)
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
@@ -149,7 +159,7 @@ fun AddEditRecordPage(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        containerColor = MiuixTheme.colorScheme.secondaryContainer
                     )
                 ) {
                     Row(
@@ -157,16 +167,16 @@ fun AddEditRecordPage(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Info,
+                            imageVector = MiuixIcons.Info,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondary,
+                            tint = MiuixTheme.colorScheme.secondary,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "当前日期类型: $holidayInfo",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                            style = MiuixTheme.textStyles.bodyMedium,
+                            color = MiuixTheme.colorScheme.onSecondaryContainer
                         )
                     }
                 }
@@ -174,8 +184,8 @@ fun AddEditRecordPage(
                 Text(
                     modifier = Modifier.padding(top = 8.dp),
                     text = "正在加载日期信息...",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MiuixTheme.textStyles.bodySmall,
+                    color = MiuixTheme.colorScheme.onSurfaceVariant
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -199,10 +209,10 @@ fun AddEditRecordPage(
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("加班时长: ${"%.2f".format(duration)} 小时", style = MaterialTheme.typography.titleMedium)
+            Text("加班时长: ${"%.2f".format(duration)} 小时", style = MiuixTheme.textStyles.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text("加班类型:", style = MaterialTheme.typography.titleMedium)
+            Text("加班类型:", style = MiuixTheme.textStyles.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OvertimeType.values().forEach { type ->
@@ -223,7 +233,7 @@ fun AddEditRecordPage(
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("预计金额: ¥${"%.2f".format(money)}", style = MaterialTheme.typography.titleMedium)
+            Text("预计金额: ¥${"%.2f".format(money)}", style = MiuixTheme.textStyles.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
@@ -280,12 +290,11 @@ fun AddEditRecordPage(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                    .height(56.dp)
             ) {
                 Text(
                     text = "保存",
-                    style = MaterialTheme.typography.titleMedium
+                    style = MiuixTheme.textStyles.titleMedium
                 )
             }
         }
@@ -299,10 +308,10 @@ fun AddEditRecordPage(
             initialSelectedDateMillis = initialMillis
         )
         
-        DatePickerDialog(
+        AlertDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
-                TextButton(
+                Button(
                     onClick = {
                         val selectedMillis = datePickerState.selectedDateMillis
                         if (selectedMillis != null) {
@@ -331,7 +340,7 @@ fun AddEditRecordPage(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
+                Button(onClick = { showDatePicker = false }) {
                     Text("取消")
                 }
             }
@@ -365,7 +374,6 @@ fun AddEditRecordPage(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimePickerDialogWrapper(
     initialHour: Int,
@@ -381,8 +389,7 @@ fun TimePickerDialogWrapper(
     
     Dialog(onDismissRequest = onDismiss) {
         Card(
-            modifier = Modifier.wrapContentSize(),
-            shape = MaterialTheme.shapes.extraLarge
+            modifier = Modifier.wrapContentSize()
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
@@ -390,8 +397,8 @@ fun TimePickerDialogWrapper(
             ) {
                 Text(
                     text = "选择时间",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MiuixTheme.textStyles.labelMedium,
+                    color = MiuixTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 TimePicker(state = timePickerState)
@@ -400,11 +407,11 @@ fun TimePickerDialogWrapper(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    TextButton(onClick = onDismiss) {
+                    Button(onClick = onDismiss) {
                         Text("取消")
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    TextButton(onClick = { onConfirm(timePickerState.hour, timePickerState.minute) }) {
+                    Button(onClick = { onConfirm(timePickerState.hour, timePickerState.minute) }) {
                         Text("确定")
                     }
                 }

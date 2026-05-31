@@ -8,11 +8,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,8 +21,11 @@ import com.mars.overtime.push.CalendarSyncManager
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import top.yukonga.miuix.kmp.basic.*
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.icons.*
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarSettingsPage(
     onNavigateBack: () -> Unit
@@ -98,7 +96,7 @@ fun CalendarSettingsPage(
                 title = { Text("日历同步") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "返回")
+                        Icon(MiuixIcons.ArrowBack, contentDescription = "返回")
                     }
                 }
             )
@@ -125,25 +123,25 @@ fun CalendarSettingsPage(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "日历权限",
-                                style = MaterialTheme.typography.titleMedium
+                                style = MiuixTheme.textStyles.titleMedium
                             )
                             Text(
                                 text = if (hasPermission) "已授权" else "未授权",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = if (hasPermission) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                                style = MiuixTheme.textStyles.bodySmall,
+                                color = if (hasPermission) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.error
                             )
                         }
                         if (hasPermission) {
                             Icon(
-                                Icons.Default.Check,
+                                MiuixIcons.Check,
                                 contentDescription = "已授权",
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = MiuixTheme.colorScheme.primary
                             )
                         } else {
                             Icon(
-                                Icons.Default.Close,
+                                MiuixIcons.Close,
                                 contentDescription = "未授权",
-                                tint = MaterialTheme.colorScheme.error
+                                tint = MiuixTheme.colorScheme.error
                             )
                         }
                     }
@@ -179,12 +177,12 @@ fun CalendarSettingsPage(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "自动同步",
-                                style = MaterialTheme.typography.titleMedium
+                                style = MiuixTheme.textStyles.titleMedium
                             )
                             Text(
                                 text = "新建加班记录自动添加到日历",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                style = MiuixTheme.textStyles.bodySmall,
+                                color = MiuixTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         Switch(
@@ -211,8 +209,8 @@ fun CalendarSettingsPage(
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "日历ID: $calendarId",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MiuixTheme.textStyles.bodySmall,
+                            color = MiuixTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -228,13 +226,13 @@ fun CalendarSettingsPage(
                 ) {
                     Text(
                         text = "测试日历同步",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MiuixTheme.textStyles.titleMedium
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "点击下方按钮测试日历同步功能",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MiuixTheme.textStyles.bodySmall,
+                        color = MiuixTheme.colorScheme.onSurfaceVariant
                     )
                     
                     if (testResult != null) {
@@ -242,19 +240,19 @@ fun CalendarSettingsPage(
                         Card(
                             colors = CardDefaults.cardColors(
                                 containerColor = if (testResult?.startsWith("成功") == true) 
-                                    MaterialTheme.colorScheme.primaryContainer 
+                                    MiuixTheme.colorScheme.primaryContainer 
                                 else 
-                                    MaterialTheme.colorScheme.errorContainer
+                                    MiuixTheme.colorScheme.errorContainer
                             )
                         ) {
                             Text(
                                 text = testResult ?: "",
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MiuixTheme.textStyles.bodySmall,
                                 modifier = Modifier.padding(8.dp),
                                 color = if (testResult?.startsWith("成功") == true) 
-                                    MaterialTheme.colorScheme.onPrimaryContainer 
+                                    MiuixTheme.colorScheme.onPrimaryContainer 
                                 else 
-                                    MaterialTheme.colorScheme.onErrorContainer
+                                    MiuixTheme.colorScheme.onErrorContainer
                             )
                         }
                     }

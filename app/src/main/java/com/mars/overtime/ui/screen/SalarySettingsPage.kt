@@ -3,17 +3,17 @@ package com.mars.overtime.ui.screen
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.mars.overtime.OvertimeApplication
 import com.mars.overtime.database.AppConfig
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.*
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.icons.*
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SalarySettingsPage(
     onNavigateBack: () -> Unit
@@ -50,7 +50,7 @@ fun SalarySettingsPage(
                 title = { Text("薪资设置") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "返回")
+                        Icon(MiuixIcons.ArrowBack, contentDescription = "返回")
                     }
                 }
             )
@@ -63,7 +63,7 @@ fun SalarySettingsPage(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            Text("基础薪资基数 (元/月)", style = MaterialTheme.typography.titleMedium)
+            Text("基础薪资基数 (元/月)", style = MiuixTheme.textStyles.titleMedium)
             OutlinedTextField(
                 value = baseSalary,
                 onValueChange = { baseSalary = it },
@@ -75,36 +75,36 @@ fun SalarySettingsPage(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    containerColor = MiuixTheme.colorScheme.secondaryContainer
                 )
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp)
                 ) {
-                    Text("加班工资计算", style = MaterialTheme.typography.titleMedium)
+                    Text("加班工资计算", style = MiuixTheme.textStyles.titleMedium)
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = "小时基础工资: ¥${"%.2f".format(hourlyRate)}/小时",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MiuixTheme.textStyles.bodyLarge
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "工作日加班: ¥${"%.2f".format(hourlyRate * workdayRateNum)}/小时",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MiuixTheme.textStyles.bodyMedium
                     )
                     Text(
                         text = "休息日加班: ¥${"%.2f".format(hourlyRate * restdayRateNum)}/小时",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MiuixTheme.textStyles.bodyMedium
                     )
                     Text(
                         text = "法定节假日: ¥${"%.2f".format(hourlyRate * holidayRateNum)}/小时",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MiuixTheme.textStyles.bodyMedium
                     )
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("工作日延时倍率", style = MaterialTheme.typography.titleMedium)
+            Text("工作日延时倍率", style = MiuixTheme.textStyles.titleMedium)
             OutlinedTextField(
                 value = workdayRate,
                 onValueChange = { workdayRate = it },
@@ -113,7 +113,7 @@ fun SalarySettingsPage(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("休息日倍率", style = MaterialTheme.typography.titleMedium)
+            Text("休息日倍率", style = MiuixTheme.textStyles.titleMedium)
             OutlinedTextField(
                 value = restdayRate,
                 onValueChange = { restdayRate = it },
@@ -122,7 +122,7 @@ fun SalarySettingsPage(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("法定节假日倍率", style = MaterialTheme.typography.titleMedium)
+            Text("法定节假日倍率", style = MiuixTheme.textStyles.titleMedium)
             OutlinedTextField(
                 value = holidayRate,
                 onValueChange = { holidayRate = it },
