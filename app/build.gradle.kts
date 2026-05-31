@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.mars.overtime"
-    compileSdk = 34
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.mars.overtime"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 37
         versionCode = 16
         versionName = "1.0.16"
 
